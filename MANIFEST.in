@@ -1,1 +1,5 @@
+# Include the LICENSE for libbrotli
+include libbrotli/LICENSE
+
+# Include the needed .c and .h files
 recursive-include libbrotli *.c *.h *.cc
