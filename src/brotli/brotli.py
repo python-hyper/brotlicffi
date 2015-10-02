@@ -71,7 +71,7 @@ class Decompressor(object):
                 brotli_input[0], brotli_output[0], 0, self.state
             )
             assert rc > 0
-            if exceptions:
+            if exceptions:  # pragma: no cover
                 raise exceptions[0]
 
         return b''.join(chunks)
@@ -110,7 +110,7 @@ class Decompressor(object):
                 brotli_input[0], brotli_output[0], 1, self.state
             )
             assert rc > 0
-            if exceptions:
+            if exceptions:  # pragma: no cover
                 raise exceptions[0]
             if rc < 3:
                 break
