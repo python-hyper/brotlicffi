@@ -10,19 +10,6 @@ def here(*paths):
     return os.path.abspath(os.path.join(os.path.dirname(__file__), *paths))
 
 
-try:
-    import brotli.brotli
-except ImportError:
-    # installing - there is no cffi yet
-    ext_modules = []
-else:
-    # building bdist - cffi is here!
-    ext_modules = [brotli.brotli.ffi.verifier.get_extension()]
-    ext_modules[0].include_dirs.extend(
-        [here("libbrotli/dec"), here("libbrotli/enc")]
-    )
-
-
 setup(
     name=brotli.__title__,
     version=brotli.__version__,
@@ -49,7 +36,6 @@ setup(
     ],
 
     ext_package="brotli",
-    ext_modules=ext_modules,
 
     libraries=[
         ("libbrotli", {
