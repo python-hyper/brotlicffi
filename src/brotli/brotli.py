@@ -112,7 +112,7 @@ class Decompressor(object):
             assert rc > 0
             if exceptions:  # pragma: no cover
                 raise exceptions[0]
-            if rc < 3:
+            if rc < 3:  # pragma: no cover
                 break
 
         return b''.join(chunks)
