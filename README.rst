@@ -7,6 +7,8 @@ algorithm directly from Python code.
 
 To use it simply, try this:
 
+.. code-block:: python
+
     import brotli
     data = brotli.decompress(compressed_data)
 
