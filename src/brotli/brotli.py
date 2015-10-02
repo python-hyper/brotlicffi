@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from _brotli import ffi, lib
+from ._brotli import ffi, lib
 
 
 def decompress(data):

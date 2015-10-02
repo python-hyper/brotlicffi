@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 import os.path
 
-from setuptools import setup
-
-import brotli
+from setuptools import setup, find_packages
 
 
 def here(*paths):
@@ -11,16 +9,16 @@ def here(*paths):
 
 
 setup(
-    name=brotli.__title__,
-    version=brotli.__version__,
+    name="brotlipy",
+    version="0.1.0",
 
-    description=brotli.__summary__,
+    description="Python binding to the Brotli library",
     long_description=open("README.rst").read(),
-    url=brotli.__uri__,
-    license=brotli.__license__,
+    url="https://github.com/python-hyper/brotlipy/",
+    license="MIT",
 
-    author=brotli.__author__,
-    author_email=brotli.__email__,
+    author="Cory Benfield",
+    author_email="cory@lukasa.co.uk",
 
     setup_requires=[
         "cffi>=1.0.0",
@@ -29,11 +27,10 @@ setup(
         "cffi>=1.0.0",
     ],
 
-    cffi_modules=["brotli/build.py:ffi"],
+    cffi_modules=["src/brotli/build.py:ffi"],
 
-    packages=[
-        "brotli",
-    ],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
 
     ext_package="brotli",
 
