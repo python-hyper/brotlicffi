@@ -50,7 +50,7 @@ class Decompressor(object):
                 buf[0:len(data_to_write)] = data_to_write
                 index_ptr[0] += len(data_to_write)
                 return len(data_to_write)
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 exceptions.append(e)
                 return 0
 
@@ -59,7 +59,7 @@ class Decompressor(object):
             try:
                 chunks.append(ffi.buffer(ffi.cast("char *", buf), length)[:])
                 return length
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 exceptions.append(e)
                 return 0
 
@@ -98,7 +98,7 @@ class Decompressor(object):
             try:
                 chunks.append(ffi.buffer(ffi.cast("char *", buf), length)[:])
                 return length
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 exceptions.append(e)
                 return 0
 
