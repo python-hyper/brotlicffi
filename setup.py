@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="brotlipy",
-    version="0.1.1",
+    version="0.1.2",
 
     description="Python binding to the Brotli library",
     long_description=open("README.rst").read(),
