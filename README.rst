@@ -12,9 +12,10 @@ To use it simply, try this:
     import brotli
     data = brotli.decompress(compressed_data)
 
-More information can be found in the documentation (WIP).
+More information can be found `in the documentation`_.
 
 .. _available here: https://github.com/google/brotli
+.. _in the documentation: https://brotlipy.rtfd.org
 
 License
 -------
