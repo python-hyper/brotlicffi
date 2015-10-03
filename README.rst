@@ -21,7 +21,7 @@ License
 
 The source code of brotlipy is available under the MIT license. Brotli itself
 is made available under the Version 2.0 of the Apache Software License. See the
-LICENSE and NOTICE files for more information.
+LICENSE and libbrotli/LICENSE files for more information.
 
 Authors
 -------
