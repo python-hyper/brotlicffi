@@ -1,3 +1,6 @@
+# Include our LICENSE and README
+include LICENSE README.rst
+
 # Include the LICENSE for libbrotli
 include libbrotli/LICENSE
 
