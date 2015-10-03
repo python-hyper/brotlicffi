@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-import os.path
-
 from setuptools import setup, find_packages
 
 
 setup(
     name="brotlipy",
-    version="0.1.0",
+    version="0.1.1",
 
     description="Python binding to the Brotli library",
     long_description=open("README.rst").read(),
