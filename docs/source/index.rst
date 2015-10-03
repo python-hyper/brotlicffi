@@ -47,3 +47,8 @@ library does not provide a C API for its compression, which means the Brotlipy
 project needs to write one itself. This is a planned enhancement, but for the
 moment is not present.
 
+License
+-------
+
+Brotlipy's source code is made available under the MIT license. Brotli itself
+is licensed under Version 2.0 of the Apache Software License.
