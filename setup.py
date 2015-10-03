@@ -4,10 +4,6 @@ import os.path
 from setuptools import setup, find_packages
 
 
-def here(*paths):
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), *paths))
-
-
 setup(
     name="brotlipy",
     version="0.1.0",
@@ -37,29 +33,27 @@ setup(
     libraries=[
         ("libbrotli", {
             "include_dirs": [
-                here("libbrotli/enc"),
-                here("libbrotli/dec"),
+                "libbrotli/enc",
+                "libbrotli/dec",
             ],
             "sources": [
-                here("libbrotli/", s) for s in [
-                    "dec/bit_reader.c",
-                    "dec/decode.c",
-                    "dec/huffman.c",
-                    "dec/state.c",
-                    "dec/streams.c",
-                    "dec/dictionary.c",
-                    "enc/backward_references.cc",
-                    "enc/histogram.cc",
-                    "enc/block_splitter.cc",
-                    "enc/literal_cost.cc",
-                    "enc/brotli_bit_stream.cc",
-                    "enc/metablock.cc",
-                    "enc/encode.cc",
-                    "enc/static_dict.cc",
-                    "enc/encode_parallel.cc",
-                    "enc/streams.cc",
-                    "enc/entropy_encode.cc"
-                ]
+                "libbrotli/dec/bit_reader.c",
+                "libbrotli/dec/decode.c",
+                "libbrotli/dec/huffman.c",
+                "libbrotli/dec/state.c",
+                "libbrotli/dec/streams.c",
+                "libbrotli/dec/dictionary.c",
+                "libbrotli/enc/backward_references.cc",
+                "libbrotli/enc/histogram.cc",
+                "libbrotli/enc/block_splitter.cc",
+                "libbrotli/enc/literal_cost.cc",
+                "libbrotli/enc/brotli_bit_stream.cc",
+                "libbrotli/enc/metablock.cc",
+                "libbrotli/enc/encode.cc",
+                "libbrotli/enc/static_dict.cc",
+                "libbrotli/enc/encode_parallel.cc",
+                "libbrotli/enc/streams.cc",
+                "libbrotli/enc/entropy_encode.cc",
             ],
         }),
     ],
