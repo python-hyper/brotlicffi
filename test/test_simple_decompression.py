@@ -5,7 +5,7 @@ test_simple_decompression
 
 Tests for decompression of single chunks.
 """
-import brotli.brotli
+import brotli
 
 
 def test_decompression(simple_compressed_file):
@@ -18,7 +18,7 @@ def test_decompression(simple_compressed_file):
     with open(simple_compressed_file[1], 'rb') as f:
         compressed_data = f.read()
 
-    assert brotli.brotli.decompress(compressed_data) == uncompressed_data
+    assert brotli.decompress(compressed_data) == uncompressed_data
 
 
 def test_decompressobj(simple_compressed_file):
@@ -28,7 +28,7 @@ def test_decompressobj(simple_compressed_file):
     with open(simple_compressed_file[1], 'rb') as f:
         compressed_data = f.read()
 
-    o = brotli.brotli.Decompressor()
+    o = brotli.Decompressor()
     data = o.decompress(compressed_data)
     data += o.flush()
 
@@ -46,7 +46,7 @@ def test_drip_feed(simple_compressed_file):
         compressed_data = f.read()
 
     outdata = []
-    o = brotli.brotli.Decompressor()
+    o = brotli.Decompressor()
     for i in range(0, len(compressed_data)):
         outdata.append(o.decompress(compressed_data[i:i+1]))
 
