@@ -33,6 +33,7 @@ setup(
             "include_dirs": [
                 "libbrotli/enc",
                 "libbrotli/dec",
+                "src/brotli"
             ],
             "sources": [
                 "libbrotli/dec/bit_reader.c",
@@ -52,6 +53,7 @@ setup(
                 "libbrotli/enc/encode_parallel.cc",
                 "libbrotli/enc/streams.cc",
                 "libbrotli/enc/entropy_encode.cc",
+                "src/brotli/wrapper.cc",
             ],
         }),
     ],
