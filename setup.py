@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 
+long_description = (
+    open("README.rst").read() + '\n\n' + open("HISTORY.rst").read()
+)
+
 
 setup(
     name="brotlipy",
     version="0.1.2",
 
     description="Python binding to the Brotli library",
-    long_description=open("README.rst").read(),
+    long_description=long_description,
     url="https://github.com/python-hyper/brotlipy/",
     license="MIT",
 
