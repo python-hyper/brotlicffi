@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
+import sys
 
 from cffi import FFI
 ffi = FFI()
+
+libraries = ['libbrotli']
+if 'win32' not in str(sys.platform).lower():
+    libraries.append('stdc++')
+
 
 ffi.set_source(
     "_brotli",
