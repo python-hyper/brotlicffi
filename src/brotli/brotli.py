@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import math
+
 from ._brotli import ffi, lib
 
 
@@ -17,6 +19,24 @@ def decompress(data):
     assert rc == 1
 
     return ffi.buffer(buffer, decoded_size[0])[:]
+
+
+def compress(data):
+    """
+    Compress a string using Brotli.
+
+    :param data: A bytestring containing the data to compress.
+    """
+    # The 'algorithm' for working out how big to make this buffer is from the
+    # Brotli source code, brotlimodule.cc.
+    compressed_size = ffi.new("size_t *")
+    compressed_size[0] = int(math.ceil(1.2 * len(data) + 10240))
+    buffer = ffi.new("char[]", compressed_size[0])
+
+    rc = lib.BrotliCompressBuffer(len(data), data, compressed_size, buffer)
+    assert rc == 1
+
+    return ffi.buffer(buffer, compressed_size[0])[:]
 
 
 class Decompressor(object):

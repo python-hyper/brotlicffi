@@ -6,9 +6,10 @@ ffi = FFI()
 ffi.set_source(
     "_brotli",
     """#include <dec/decode.h>
+       #include <wrapper.h>
     """,
-    libraries=["libbrotli"],
-    include_dirs=["libbrotli"]
+    libraries=["libbrotli", "stdc++"],
+    include_dirs=["libbrotli", "src/brotli"]
 )
 
 ffi.cdef("""
@@ -161,6 +162,13 @@ ffi.cdef("""
     */
     void BrotliSetCustomDictionary(
         size_t size, const uint8_t* dict, BrotliState* s);
+
+
+    /* wrapper.h */
+    int BrotliCompressBuffer(size_t input_size,
+                             const uint8_t* input_buffer,
+                             size_t* encoded_size,
+                             uint8_t* encoded_buffer);
 """)
 
 if __name__ == '__main__':
