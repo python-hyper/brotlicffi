@@ -1,5 +1,5 @@
 # Include our LICENSE and README
-include LICENSE README.rst
+include LICENSE README.rst HISTORY.rst
 
 # Include our bonus C files
 recursive-include src/brotli *.c *.h
