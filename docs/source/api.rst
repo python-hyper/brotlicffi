@@ -12,3 +12,8 @@ Decompression
 
 .. autoclass:: brotli.Decompressor
   :inherited-members:
+
+Compression
+-----------
+
+.. automethod:: brotli.compress

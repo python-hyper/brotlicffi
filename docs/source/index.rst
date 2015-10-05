@@ -23,6 +23,9 @@ module:
 
     remaining_data = d.flush()
 
+    # You can compress data too.
+    compressed = brotli.compress(uncompressed_data)
+
 For more details on the API, see :doc:`api`.
 
 .. _CFFI-based: https://cffi.readthedocs.org/en/latest/
@@ -38,14 +41,6 @@ Documentation
    installation
    api
 
-
-Notes
------
-
-Currently compressing using Brotli is not supported. This is because the Brotli
-library does not provide a C API for its compression, which means the Brotlipy
-project needs to write one itself. This is a planned enhancement, but for the
-moment is not present.
 
 License
 -------
