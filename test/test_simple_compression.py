@@ -7,6 +7,9 @@ Tests for compression of single chunks.
 """
 import brotli
 
+from hypothesis import given
+from hypothesis.strategies import binary
+
 
 def test_roundtrip_compression_with_files(simple_compressed_file):
     """
@@ -18,3 +21,8 @@ def test_roundtrip_compression_with_files(simple_compressed_file):
     assert brotli.decompress(
         brotli.compress(uncompressed_data)
     ) == uncompressed_data
+
+
+@given(binary())
+def test_compressed_data_roundtrips(s):
+    assert brotli.decompress(brotli.compress(s)) == s
