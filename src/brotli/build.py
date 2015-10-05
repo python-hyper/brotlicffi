@@ -14,7 +14,7 @@ ffi.set_source(
     """#include <dec/decode.h>
        #include <wrapper.h>
     """,
-    libraries=["libbrotli", "stdc++"],
+    libraries=libraries,
     include_dirs=["libbrotli", "src/brotli"]
 )
 
