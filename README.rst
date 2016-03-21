@@ -15,7 +15,7 @@ To use it simply, try this:
 More information can be found `in the documentation`_.
 
 .. _available here: https://github.com/google/brotli
-.. _in the documentation: https://brotlipy.rtfd.org
+.. _in the documentation: https://brotlipy.readthedocs.org
 
 License
 -------
