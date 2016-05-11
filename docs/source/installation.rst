@@ -7,10 +7,9 @@ Installing Brotlipy couldn't be easier:
 
     $ pip install brotlipy
 
-On OS X this should succeed without difficulty. On Windows, this should also be
-no problem for Python 3, though Python 2 is unsupported due to compiler
-limitations. On Linux, the above command has a few dependencies: mostly, you
-need a C compiler, the Python header files, and libffi.
+On OS X and Windows this should succeed without difficulty. On Linux, the above
+command has a few dependencies: mostly, you need a C compiler, the Python
+header files, and libffi.
 
 On Debian-based systems, you can obtain these files by running:
 
