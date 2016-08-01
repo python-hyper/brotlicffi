@@ -16,7 +16,8 @@ def decompress(data):
 
     buffer = ffi.new("char[]", decoded_size[0])
     rc = lib.BrotliDecompressBuffer(len(data), data, decoded_size, buffer)
-    assert rc == 1
+    if rc == lib.BROTLI_RESULT_ERROR:
+        raise ValueError("Bad bytes")
 
     return ffi.buffer(buffer, decoded_size[0])[:]
 

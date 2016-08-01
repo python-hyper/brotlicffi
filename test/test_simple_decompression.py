@@ -57,10 +57,18 @@ def test_drip_feed(simple_compressed_file):
     assert b''.join(outdata) == uncompressed_data
 
 
-def test_decompression_fails_properly_on_garbage():
+def test_streaming_decompression_fails_properly_on_garbage():
     """
     Garbage data properly fails decompression.
     """
     o = brotli.Decompressor()
     with pytest.raises(ValueError):
         o.decompress(b'some random garbage')
+
+
+def test_decompression_fails_properly_on_garbage():
+    """
+    Garbage data properly fails decompression.
+    """
+    with pytest.raises(ValueError):
+        brotli.decompress(b'some random garbage')
