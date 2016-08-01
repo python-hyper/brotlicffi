@@ -7,6 +7,8 @@ Tests for decompression of single chunks.
 """
 import brotli
 
+import pytest
+
 
 def test_decompression(simple_compressed_file):
     """
@@ -53,3 +55,12 @@ def test_drip_feed(simple_compressed_file):
     outdata.append(o.flush())
 
     assert b''.join(outdata) == uncompressed_data
+
+
+def test_decompression_fails_properly_on_garbage():
+    """
+    Garbage data properly fails decompression.
+    """
+    o = brotli.Decompressor()
+    with pytest.raises(ValueError):
+        o.decompress(b'some random garbage')

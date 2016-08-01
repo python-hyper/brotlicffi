@@ -45,8 +45,8 @@ class Decompressor(object):
     data.
     """
     def __init__(self):
-        self.state = ffi.new("BrotliState *")
-        lib.BrotliStateInit(self.state)
+        self.state = lib.BrotliCreateState(ffi.NULL, ffi.NULL, ffi.NULL)
+        assert self.state
 
     def decompress(self, data):
         """
@@ -56,43 +56,42 @@ class Decompressor(object):
         :returns: A bytestring containing the decompressed data.
         """
         chunks = []
-        index_ptr = ffi.new("int *")
-        index_ptr[0] = 0
-        exceptions = []
 
-        @ffi.callback("int(void *, uint8_t *, size_t)")
-        def _brotli_in(index_ptr, buf, length):
-            try:
-                buf = ffi.buffer(buf, length)
-                index_ptr = ffi.cast("int *", index_ptr)
-                index = index_ptr[0]
-                data_to_write = data[index:index+length]
-                buf[0:len(data_to_write)] = data_to_write
-                index_ptr[0] += len(data_to_write)
-                return len(data_to_write)
-            except Exception as e:  # pragma: no cover
-                exceptions.append(e)
-                return 0
+        available_in = ffi.new("size_t *", len(data))
+        in_buffer = ffi.new("uint8_t[]", data)
+        next_in = ffi.new("uint8_t **", in_buffer)
 
-        @ffi.callback("int(void *, uint8_t *, size_t)")
-        def _brotli_out(data_ptr, buf, length):
-            try:
-                chunks.append(ffi.buffer(ffi.cast("char *", buf), length)[:])
-                return length
-            except Exception as e:  # pragma: no cover
-                exceptions.append(e)
-                return 0
+        while True:
+            # Allocate a buffer that's hopefully overlarge, but if it's not we
+            # don't mind: we'll spin around again.
+            buffer_size = 5 * len(data)
+            available_out = ffi.new("size_t *", buffer_size)
+            out_buffer = ffi.new("uint8_t[]", buffer_size)
+            next_out = ffi.new("uint8_t **", out_buffer)
 
-        brotli_input = ffi.new("BrotliInput *", [_brotli_in, index_ptr])
-        brotli_output = ffi.new("BrotliOutput *", [_brotli_out, ffi.NULL])
+            rc = lib.BrotliDecompressStream(available_in,
+                                            next_in,
+                                            available_out,
+                                            next_out,
+                                            ffi.NULL,
+                                            self.state)
 
-        while index_ptr[0] < len(data):
-            rc = lib.BrotliDecompressStreaming(
-                brotli_input[0], brotli_output[0], 0, self.state
-            )
-            assert rc > 0
-            if exceptions:  # pragma: no cover
-                raise exceptions[0]
+            # First, check for errors.
+            if rc == lib.BROTLI_RESULT_ERROR:
+                raise ValueError("Bad bytes")
+
+            # Next, copy the result out.
+            chunk = ffi.buffer(out_buffer, buffer_size - available_out[0])[:]
+            chunks.append(chunk)
+
+            if rc == lib.BROTLI_RESULT_NEEDS_MORE_INPUT:
+                assert available_in[0] == 0
+                break
+            elif rc == lib.BROTLI_RESULT_SUCCESS:
+                break
+            else:
+                # It's cool if we need more output, we just loop again.
+                assert rc == lib.BROTLI_RESULT_NEEDS_MORE_OUTPUT
 
         return b''.join(chunks)
 
@@ -104,35 +103,12 @@ class Decompressor(object):
         This action also resets the decompression state, allowing the
         decompressor to be used again.
 
+        .. deprecated:: 0.4.0
+
+            This method is no longer required, as decompress() will now
+            decompress eagerly.
+
         :returns: A bytestring containing the remaining decompressed data.
         """
-        chunks = []
-        exceptions = []
 
-        @ffi.callback("int(void *, uint8_t *, size_t)")
-        def _brotli_in(index_ptr, buf, length):
-            return 0
-
-        @ffi.callback("int(void *, uint8_t *, size_t)")
-        def _brotli_out(data_ptr, buf, length):
-            try:
-                chunks.append(ffi.buffer(ffi.cast("char *", buf), length)[:])
-                return length
-            except Exception as e:  # pragma: no cover
-                exceptions.append(e)
-                return 0
-
-        brotli_input = ffi.new("BrotliInput *", [_brotli_in, ffi.NULL])
-        brotli_output = ffi.new("BrotliOutput *", [_brotli_out, ffi.NULL])
-
-        while True:
-            rc = lib.BrotliDecompressStreaming(
-                brotli_input[0], brotli_output[0], 1, self.state
-            )
-            assert rc > 0
-            if exceptions:  # pragma: no cover
-                raise exceptions[0]
-            if rc < 3:  # pragma: no cover
-                break
-
-        return b''.join(chunks)
+        return b''
