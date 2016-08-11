@@ -64,7 +64,6 @@ setup(
                 "libbrotli/enc/compressor.cc",
                 "libbrotli/enc/encode_parallel.cc",
                 "libbrotli/enc/streams.cc",
-                "src/brotli/wrapper.cc",
             ],
         }),
     ],
