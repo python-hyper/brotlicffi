@@ -12,13 +12,18 @@ if 'win32' not in str(sys.platform).lower():
 ffi.set_source(
     "_brotli",
     """#include <dec/decode.h>
-       #include <wrapper.h>
+       #include <enc/encode.h>
     """,
     libraries=libraries,
     include_dirs=["libbrotli", "src/brotli"]
 )
 
 ffi.cdef("""
+    /* common/types.h */
+    typedef bool BROTLI_BOOL;
+    #define BROTLI_TRUE ...
+    #define BROTLI_FALSE ...
+
     /* dec/state.h */
     typedef ... BrotliState;
 
@@ -115,11 +120,37 @@ ffi.cdef("""
         size_t size, const uint8_t* dict, BrotliState* s);
 
 
-    /* wrapper.h */
-    int BrotliCompressBuffer(size_t input_size,
-                             const uint8_t* input_buffer,
-                             size_t* encoded_size,
-                             uint8_t* encoded_buffer);
+    /* enc/encode.h */
+    typedef enum BrotliEncoderMode {
+      /* Default compression mode. The compressor does not know anything in
+         advance about the properties of the input. */
+      BROTLI_MODE_GENERIC = 0,
+      /* Compression mode for UTF-8 format text input. */
+      BROTLI_MODE_TEXT = 1,
+      /* Compression mode used in WOFF 2.0. */
+      BROTLI_MODE_FONT = 2
+    } BrotliEncoderMode;
+
+    int BROTLI_DEFAULT_QUALITY = 11;
+    int BROTLI_DEFAULT_WINDOW = 22;
+    #define BROTLI_DEFAULT_MODE ...
+
+    /* Compresses the data in |input_buffer| into |encoded_buffer|, and sets
+       |*encoded_size| to the compressed length.
+       BROTLI_DEFAULT_QUALITY, BROTLI_DEFAULT_WINDOW and BROTLI_DEFAULT_MODE
+       should be used as |quality|, |lgwin| and |mode| if there are no specific
+       requirements to encoder speed and compression ratio.
+       If compression fails, |*encoded_size| is set to 0.
+       If BrotliEncoderMaxCompressedSize(|input_size|) is not zero, then
+       |*encoded_size| is never set to the bigger value.
+       Returns false if there was an error and true otherwise. */
+    BROTLI_BOOL BrotliEncoderCompress(int quality,
+                                      int lgwin,
+                                      BrotliEncoderMode mode,
+                                      size_t input_size,
+                                      const uint8_t* input_buffer,
+                                      size_t* encoded_size,
+                                      uint8_t* encoded_buffer);
 """)
 
 if __name__ == '__main__':

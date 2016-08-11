@@ -34,8 +34,16 @@ def compress(data):
     compressed_size[0] = int(math.ceil(1.2 * len(data) + 10240))
     buffer = ffi.new("char[]", compressed_size[0])
 
-    rc = lib.BrotliCompressBuffer(len(data), data, compressed_size, buffer)
-    assert rc == 1
+    rc = lib.BrotliEncoderCompress(
+        lib.BROTLI_DEFAULT_QUALITY,
+        lib.BROTLI_DEFAULT_WINDOW,
+        lib.BROTLI_DEFAULT_MODE,
+        len(data),
+        data,
+        compressed_size,
+        buffer
+    )
+    assert rc == lib.BROTLI_TRUE
 
     return ffi.buffer(buffer, compressed_size[0])[:]
 
