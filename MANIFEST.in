@@ -1,12 +1,10 @@
 # Include our LICENSE and README
 include LICENSE README.rst HISTORY.rst
 
-# Include our bonus C files
-recursive-include src/brotli *.c *.h
-
 # Include the LICENSE for libbrotli
 include libbrotli/LICENSE
 
 # Include the needed .c and .h files
 recursive-include libbrotli/enc *.c *.h *.cc
 recursive-include libbrotli/dec *.c *.h *.cc
+recursive-include libbrotli/common *.c *.h *.cc
