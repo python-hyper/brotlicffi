@@ -74,7 +74,7 @@ def compress(data,
     brotli_encoder = lib.BrotliEncoderCreateInstance(
         ffi.NULL, ffi.NULL, ffi.NULL
     )
-    if not brotli_encoder:
+    if not brotli_encoder:  # pragma: no cover
         raise RuntimeError("Unable to allocate Brotli encoder!")
 
     brotli_encoder = ffi.gc(brotli_encoder, lib.BrotliEncoderDestroyInstance)
@@ -142,9 +142,9 @@ class Decompressor(object):
         self._decoder = ffi.gc(dec, lib.BrotliDecoderDestroyInstance)
 
         if dictionary:
-            self._dictionary = ffi.new("uint_t []", dictionary)
+            self._dictionary = ffi.new("uint8_t []", dictionary)
             self._dictionary_size = len(dictionary)
-            lib.BrotliDecoderSetCustomDictonary(
+            lib.BrotliDecoderSetCustomDictionary(
                 self._decoder,
                 self._dictionary_size,
                 self._dictionary
