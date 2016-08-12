@@ -121,6 +121,20 @@ ffi.cdef("""
 
 
     /* enc/encode.h */
+    typedef ... BrotliEncoderState;
+
+    typedef enum BrotliEncoderParameter {
+      BROTLI_PARAM_MODE = 0,
+      /* Controls the compression-speed vs compression-density tradeoffs. The
+         higher the quality, the slower the compression. Range is 0 to 11. */
+      BROTLI_PARAM_QUALITY = 1,
+      /* Base 2 logarithm of the sliding window size. Range is 10 to 24. */
+      BROTLI_PARAM_LGWIN = 2,
+      /* Base 2 logarithm of the maximum input block size. Range is 16 to 24.
+         If set to 0, the value will be set based on the quality. */
+      BROTLI_PARAM_LGBLOCK = 3
+    } BrotliEncoderParameter;
+
     typedef enum BrotliEncoderMode {
       /* Default compression mode. The compressor does not know anything in
          advance about the properties of the input. */
@@ -134,6 +148,27 @@ ffi.cdef("""
     int BROTLI_DEFAULT_QUALITY = 11;
     int BROTLI_DEFAULT_WINDOW = 22;
     #define BROTLI_DEFAULT_MODE ...
+
+    typedef enum BrotliEncoderOperation {
+      BROTLI_OPERATION_PROCESS = 0,
+      /* Request output stream to flush. Performed when input stream is
+         depleted and there is enough space in output stream. */
+      BROTLI_OPERATION_FLUSH = 1,
+      /* Request output stream to finish. Performed when input stream is
+         depleted and there is enough space in output stream. */
+      BROTLI_OPERATION_FINISH = 2
+    } BrotliEncoderOperation;
+
+    /* Creates the instance of BrotliEncoderState and initializes it.
+       |alloc_func| and |free_func| MUST be both zero or both non-zero. In the
+       case they are both zero, default memory allocators are used. |opaque| is
+       passed to |alloc_func| and |free_func| when they are called. */
+    BrotliEncoderState* BrotliEncoderCreateInstance(brotli_alloc_func,
+                                                    brotli_free_func,
+                                                    void *);
+
+    /* Deinitializes and frees BrotliEncoderState instance. */
+    void BrotliEncoderDestroyInstance(BrotliEncoderState* state);
 
     /* Compresses the data in |input_buffer| into |encoded_buffer|, and sets
        |*encoded_size| to the compressed length.
@@ -151,6 +186,38 @@ ffi.cdef("""
                                       const uint8_t* input_buffer,
                                       size_t* encoded_size,
                                       uint8_t* encoded_buffer);
+
+    BROTLI_BOOL BrotliEncoderCompressStream(BrotliEncoderState* s,
+                                            BrotliEncoderOperation op,
+                                            size_t* available_in,
+                                            const uint8_t** next_in,
+                                            size_t* available_out,
+                                            uint8_t** next_out,
+                                            size_t* total_out);
+
+    BROTLI_BOOL BrotliEncoderSetParameter(BrotliEncoderState* state,
+                                          BrotliEncoderParameter p,
+                                          uint32_t value);
+
+    /* Fills the new state with a dictionary for LZ77, warming up the
+       ringbuffer, e.g. for custom static dictionaries for data formats.
+       Not to be confused with the built-in transformable dictionary of Brotli.
+       To decode, use BrotliSetCustomDictionary() of the decoder with the same
+       dictionary. */
+    void BrotliEncoderSetCustomDictionary(BrotliEncoderState* state,
+                                          size_t size,
+                                          const uint8_t* dict);
+
+    /* Check if encoder is in "finished" state, i.e. no more input is
+       acceptable and no more output will be produced.
+       Works only with BrotliEncoderCompressStream workflow.
+       Returns 1 if stream is finished and 0 otherwise. */
+    BROTLI_BOOL BrotliEncoderIsFinished(BrotliEncoderState* s);
+
+    /* Check if encoder has more output bytes in internal buffer.
+       Works only with BrotliEncoderCompressStream workflow.
+       Returns 1 if has more output (in internal buffer) and 0 otherwise. */
+    BROTLI_BOOL BrotliEncoderHasMoreOutput(BrotliEncoderState* s);
 """)
 
 if __name__ == '__main__':

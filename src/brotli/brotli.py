@@ -1,7 +1,27 @@
 # -*- coding: utf-8 -*-
 import math
+import enum
 
 from ._brotli import ffi, lib
+
+
+class BrotliEncoderMode(enum.IntEnum):
+    """
+    Compression modes for the Brotli encoder.
+    """
+    #: Default compression mode. The compressor does not know anything in
+    #: advance about the properties of the input.
+    BROTLI_MODE_GENERIC = lib.BROTLI_MODE_GENERIC
+
+    #: Compression mode for UTF-8 format text input.
+    BROTLI_MODE_TEXT = lib.BROTLI_MODE_TEXT
+
+    #: Compression mode used in WOFF 2.0
+    BROTLI_MODE_FONT = lib.BROTLI_MODE_FONT
+
+
+#: The default compression mode for brotli.
+BROTLI_DEFAULT_MODE = BrotliEncoderMode(lib.BROTLI_DEFAULT_MODE)
 
 
 def decompress(data):
@@ -10,42 +30,96 @@ def decompress(data):
 
     :param data: A bytestring containing Brotli-compressed data.
     """
-    decoded_size = ffi.new("size_t *")
-    rc = lib.BrotliDecompressedSize(len(data), data, decoded_size)
-    assert rc == 1
-
-    buffer = ffi.new("char[]", decoded_size[0])
-    rc = lib.BrotliDecompressBuffer(len(data), data, decoded_size, buffer)
-    if rc == lib.BROTLI_RESULT_ERROR:
-        raise ValueError("Bad bytes")
-
-    return ffi.buffer(buffer, decoded_size[0])[:]
+    d = Decompressor()
+    return d.decompress(data)
 
 
-def compress(data):
+def compress(data,
+             mode=BROTLI_DEFAULT_MODE,
+             quality=lib.BROTLI_DEFAULT_QUALITY,
+             lgwin=lib.BROTLI_DEFAULT_WINDOW,
+             lgblock=0,
+             dictionary=b''):
     """
     Compress a string using Brotli.
 
     :param data: A bytestring containing the data to compress.
+    :type data: ``bytes``
+
+    :param mode: The encoder mode.
+    :type mode: :class:`BrotliEncoderMode` or ``int``
+
+    :param quality: Controls the compression-speed vs compression-density
+        tradeoffs. The higher the quality, the slower the compression. The
+        range of this value is 0 to 11.
+    :type quality: ``int``
+
+    :param lgwin: The base-2 logarithm of the sliding window size. The range of
+        this value is 10 to 24.
+    :type lgwin: ``int``
+
+    :param lgblock: The base-2 logarithm of the maximum input block size. The
+        range of this value is 16 to 24. If set to 0, the value will be set
+        based on ``quality``.
+    :type lgblock: ``int``
+
+    :param dictionary: A pre-set dictionary for LZ77. Please use this with
+        caution: if a dictionary is used for compression, the same dictionary
+        **must** be used for decompression!
+    :type dictionary: ``bytes``
+
+    :returns: The compressed bytestring.
+    :rtype: ``bytes``
     """
+    brotli_encoder = lib.BrotliEncoderCreateInstance(
+        ffi.NULL, ffi.NULL, ffi.NULL
+    )
+    if not brotli_encoder:
+        raise RuntimeError("Unable to allocate Brotli encoder!")
+
+    brotli_encoder = ffi.gc(brotli_encoder, lib.BrotliEncoderDestroyInstance)
+
+    # Configure the encoder appropriately.
+    lib.BrotliEncoderSetParameter(brotli_encoder, lib.BROTLI_PARAM_MODE, mode)
+    lib.BrotliEncoderSetParameter(
+        brotli_encoder, lib.BROTLI_PARAM_QUALITY, quality
+    )
+    lib.BrotliEncoderSetParameter(
+        brotli_encoder, lib.BROTLI_PARAM_LGWIN, lgwin
+    )
+    lib.BrotliEncoderSetParameter(
+        brotli_encoder, lib.BROTLI_PARAM_LGBLOCK, lgblock
+    )
+
+    if dictionary:
+        lib.BrotliEncoderSetCustomDictionary(
+            brotli_encoder, len(dictionary), dictionary
+        )
+
     # The 'algorithm' for working out how big to make this buffer is from the
     # Brotli source code, brotlimodule.cc.
-    compressed_size = ffi.new("size_t *")
-    compressed_size[0] = int(math.ceil(1.2 * len(data) + 10240))
-    buffer = ffi.new("char[]", compressed_size[0])
+    output_size = ffi.new("size_t *")
+    output_size[0] = int(math.ceil(len(data) + (len(data) >> 2) + 10240))
+    output_buffer = ffi.new("uint8_t []", output_size[0])
+    ptr_to_output_buffer = ffi.new("uint8_t **", output_buffer)
+    input_size = ffi.new("size_t *", len(data))
+    input_buffer = ffi.new("uint8_t []", data)
+    ptr_to_input_buffer = ffi.new("uint8_t **", input_buffer)
 
-    rc = lib.BrotliEncoderCompress(
-        lib.BROTLI_DEFAULT_QUALITY,
-        lib.BROTLI_DEFAULT_WINDOW,
-        lib.BROTLI_DEFAULT_MODE,
-        len(data),
-        data,
-        compressed_size,
-        buffer
+    rc = lib.BrotliEncoderCompressStream(
+        brotli_encoder,
+        lib.BROTLI_OPERATION_FINISH,
+        input_size,
+        ptr_to_input_buffer,
+        output_size,
+        ptr_to_output_buffer,
+        ffi.NULL
     )
     assert rc == lib.BROTLI_TRUE
+    assert lib.BrotliEncoderIsFinished(brotli_encoder) == lib.BROTLI_TRUE
+    assert lib.BrotliEncoderHasMoreOutput(brotli_encoder) == lib.BROTLI_FALSE
 
-    return ffi.buffer(buffer, compressed_size[0])[:]
+    return ffi.buffer(output_buffer, output_size[0])[:]
 
 
 class Decompressor(object):
