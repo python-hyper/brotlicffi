@@ -98,9 +98,10 @@ def compress(data,
 
     # The 'algorithm' for working out how big to make this buffer is from the
     # Brotli source code, brotlimodule.cc.
-    output_size = ffi.new("size_t *")
-    output_size[0] = int(math.ceil(len(data) + (len(data) >> 2) + 10240))
-    output_buffer = ffi.new("uint8_t []", output_size[0])
+    original_output_size = int(math.ceil(len(data) + (len(data) >> 2) + 10240))
+    available_out = ffi.new("size_t *")
+    available_out[0] = original_output_size
+    output_buffer = ffi.new("uint8_t []", available_out[0])
     ptr_to_output_buffer = ffi.new("uint8_t **", output_buffer)
     input_size = ffi.new("size_t *", len(data))
     input_buffer = ffi.new("uint8_t []", data)
@@ -111,7 +112,7 @@ def compress(data,
         lib.BROTLI_OPERATION_FINISH,
         input_size,
         ptr_to_input_buffer,
-        output_size,
+        available_out,
         ptr_to_output_buffer,
         ffi.NULL
     )
@@ -119,17 +120,35 @@ def compress(data,
     assert lib.BrotliEncoderIsFinished(brotli_encoder) == lib.BROTLI_TRUE
     assert lib.BrotliEncoderHasMoreOutput(brotli_encoder) == lib.BROTLI_FALSE
 
-    return ffi.buffer(output_buffer, output_size[0])[:]
+    size_of_output = original_output_size - available_out[0]
+    return ffi.buffer(output_buffer, size_of_output)[:]
 
 
 class Decompressor(object):
     """
     An object that allows for streaming decompression of Brotli-compressed
     data.
+
+    :param dictionary: A pre-set dictionary for LZ77. Please use this with
+        caution: if a dictionary is used for compression, the same dictionary
+        **must** be used for decompression!
+    :type dictionary: ``bytes``
     """
-    def __init__(self):
-        self.state = lib.BrotliCreateState(ffi.NULL, ffi.NULL, ffi.NULL)
-        assert self.state
+    _dictionary = None
+    _dictionary_size = None
+
+    def __init__(self, dictionary=b''):
+        dec = lib.BrotliDecoderCreateInstance(ffi.NULL, ffi.NULL, ffi.NULL)
+        self._decoder = ffi.gc(dec, lib.BrotliDecoderDestroyInstance)
+
+        if dictionary:
+            self._dictionary = ffi.new("uint_t []", dictionary)
+            self._dictionary_size = len(dictionary)
+            lib.BrotliDecoderSetCustomDictonary(
+                self._decoder,
+                self._dictionary_size,
+                self._dictionary
+            )
 
     def decompress(self, data):
         """
@@ -152,29 +171,31 @@ class Decompressor(object):
             out_buffer = ffi.new("uint8_t[]", buffer_size)
             next_out = ffi.new("uint8_t **", out_buffer)
 
-            rc = lib.BrotliDecompressStream(available_in,
-                                            next_in,
-                                            available_out,
-                                            next_out,
-                                            ffi.NULL,
-                                            self.state)
+            rc = lib.BrotliDecoderDecompressStream(self._decoder,
+                                                   available_in,
+                                                   next_in,
+                                                   available_out,
+                                                   next_out,
+                                                   ffi.NULL)
 
             # First, check for errors.
-            if rc == lib.BROTLI_RESULT_ERROR:
-                raise ValueError("Bad bytes")
+            if rc == lib.BROTLI_DECODER_RESULT_ERROR:
+                error_code = lib.BrotliDecoderGetErrorCode(self._decoder)
+                error_message = lib.BrotliDecoderErrorString(error_code)
+                raise ValueError("Bad bytes: %s" % ffi.string(error_message))
 
             # Next, copy the result out.
             chunk = ffi.buffer(out_buffer, buffer_size - available_out[0])[:]
             chunks.append(chunk)
 
-            if rc == lib.BROTLI_RESULT_NEEDS_MORE_INPUT:
+            if rc == lib.BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT:
                 assert available_in[0] == 0
                 break
-            elif rc == lib.BROTLI_RESULT_SUCCESS:
+            elif rc == lib.BROTLI_DECODER_RESULT_SUCCESS:
                 break
             else:
                 # It's cool if we need more output, we just loop again.
-                assert rc == lib.BROTLI_RESULT_NEEDS_MORE_OUTPUT
+                assert rc == lib.BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT
 
         return b''.join(chunks)
 
