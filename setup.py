@@ -24,6 +24,9 @@ setup(
     install_requires=[
         "cffi>=1.0.0",
     ],
+    extras_require={
+        ':python_version == "2.7" or python_version == "3.3"': ['enum34>=1.0.4, <2'],
+    },
 
     cffi_modules=["src/brotli/build.py:ffi"],
 

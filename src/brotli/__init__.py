@@ -1,2 +1,5 @@
 # -*- coding: utf-8 -*-
-from .brotli import decompress, Decompressor, compress  # noqa
+# flake8: noqa
+from .brotli import (
+    decompress, Decompressor, compress, BrotliEncoderMode, BROTLI_DEFAULT_MODE
+)
