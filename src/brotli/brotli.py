@@ -8,6 +8,8 @@ from ._brotli import ffi, lib
 class BrotliEncoderMode(enum.IntEnum):
     """
     Compression modes for the Brotli encoder.
+
+    .. versionadded:: 0.5.0
     """
     #: Default compression mode. The compressor does not know anything in
     #: advance about the properties of the input.
@@ -42,6 +44,10 @@ def compress(data,
              dictionary=b''):
     """
     Compress a string using Brotli.
+
+    .. versionchanged:: 0.5.0
+       Added ``mode``, ``quality``, `lgwin``, ``lgblock``, and ``dictionary``
+       parameters.
 
     :param data: A bytestring containing the data to compress.
     :type data: ``bytes``
@@ -128,6 +134,9 @@ class Decompressor(object):
     """
     An object that allows for streaming decompression of Brotli-compressed
     data.
+
+    .. versionchanged:: 0.5.0
+       Added ``dictionary`` parameter.
 
     :param dictionary: A pre-set dictionary for LZ77. Please use this with
         caution: if a dictionary is used for compression, the same dictionary
