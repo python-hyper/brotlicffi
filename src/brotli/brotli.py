@@ -187,6 +187,7 @@ class Compressor(object):
             ffi.NULL
         )
         assert rc == lib.BROTLI_TRUE
+        assert not input_size[0]
 
         size_of_output = original_output_size - available_out[0]
         return ffi.buffer(output_buffer, size_of_output)[:]
@@ -208,7 +209,13 @@ class Compressor(object):
         will not destroy the compressor. It can be used, for example, to ensure
         that given chunks of content will decompress immediately.
         """
-        return self._compress(b'', lib.BROTLI_OPERATION_FLUSH)
+        chunks = []
+        chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
+
+        while lib.BrotliEncoderHasMoreOutput(self._encoder) == lib.BROTLI_TRUE:
+            chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
+
+        return b''.join(chunks)
 
     def finish(self):
         """
@@ -216,7 +223,11 @@ class Compressor(object):
         transition the compressor to a completed state. The compressor cannot
         be used again after this point, and must be replaced.
         """
-        return self._compress(b'', lib.BROTLI_OPERATION_FINISH)
+        chunks = []
+        while lib.BrotliEncoderIsFinished(self._encoder) == lib.BROTLI_FALSE:
+            chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FINISH))
+
+        return b''.join(chunks)
 
 
 class Decompressor(object):
