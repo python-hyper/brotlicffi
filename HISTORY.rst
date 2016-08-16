@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.5.0 (2016-08-16)
+------------------
+
+- Update to v0.5.0 of the Brotli library.
+- Extend one-shot compression API to include all control parameters.
+- Added streaming/incremental compression API.
+- Added flags to control compression mode.
+
 0.4.0 (2016-08-01)
 ------------------
 
