@@ -77,57 +77,157 @@ def compress(data,
     :returns: The compressed bytestring.
     :rtype: ``bytes``
     """
-    brotli_encoder = lib.BrotliEncoderCreateInstance(
-        ffi.NULL, ffi.NULL, ffi.NULL
+    # This method uses private variables on the Compressor object, and
+    # generally does a whole lot of stuff that's not supported by the public
+    # API. The goal here is to minimise the number of allocations and copies
+    # we have to do. Users should prefer this method over the Compressor if
+    # they know they have single-shot data.
+    compressor = Compressor(
+        mode=mode,
+        quality=quality,
+        lgwin=lgwin,
+        lgblock=lgblock,
+        dictionary=dictionary
     )
-    if not brotli_encoder:  # pragma: no cover
-        raise RuntimeError("Unable to allocate Brotli encoder!")
+    compressed_data = compressor._compress(data, lib.BROTLI_OPERATION_FINISH)
+    assert lib.BrotliEncoderIsFinished(compressor._encoder) == lib.BROTLI_TRUE
+    assert (
+        lib.BrotliEncoderHasMoreOutput(compressor._encoder) == lib.BROTLI_FALSE
+    )
+    return compressed_data
 
-    brotli_encoder = ffi.gc(brotli_encoder, lib.BrotliEncoderDestroyInstance)
 
-    # Configure the encoder appropriately.
-    lib.BrotliEncoderSetParameter(brotli_encoder, lib.BROTLI_PARAM_MODE, mode)
-    lib.BrotliEncoderSetParameter(
-        brotli_encoder, lib.BROTLI_PARAM_QUALITY, quality
-    )
-    lib.BrotliEncoderSetParameter(
-        brotli_encoder, lib.BROTLI_PARAM_LGWIN, lgwin
-    )
-    lib.BrotliEncoderSetParameter(
-        brotli_encoder, lib.BROTLI_PARAM_LGBLOCK, lgblock
-    )
+class Compressor(object):
+    """
+    An object that allows for streaming compression of data using the Brotli
+    compression algorithm.
 
-    if dictionary:
-        lib.BrotliEncoderSetCustomDictionary(
-            brotli_encoder, len(dictionary), dictionary
+    .. versionadded:: 0.5.0
+
+    :param mode: The encoder mode.
+    :type mode: :class:`BrotliEncoderMode` or ``int``
+
+    :param quality: Controls the compression-speed vs compression-density
+        tradeoffs. The higher the quality, the slower the compression. The
+        range of this value is 0 to 11.
+    :type quality: ``int``
+
+    :param lgwin: The base-2 logarithm of the sliding window size. The range of
+        this value is 10 to 24.
+    :type lgwin: ``int``
+
+    :param lgblock: The base-2 logarithm of the maximum input block size. The
+        range of this value is 16 to 24. If set to 0, the value will be set
+        based on ``quality``.
+    :type lgblock: ``int``
+
+    :param dictionary: A pre-set dictionary for LZ77. Please use this with
+        caution: if a dictionary is used for compression, the same dictionary
+        **must** be used for decompression!
+    :type dictionary: ``bytes``
+    """
+    _dictionary = None
+    _dictionary_size = None
+
+    def __init__(self,
+                 mode=BROTLI_DEFAULT_MODE,
+                 quality=lib.BROTLI_DEFAULT_QUALITY,
+                 lgwin=lib.BROTLI_DEFAULT_WINDOW,
+                 lgblock=0,
+                 dictionary=b''):
+        enc = lib.BrotliEncoderCreateInstance(
+            ffi.NULL, ffi.NULL, ffi.NULL
         )
+        if not enc:  # pragma: no cover
+            raise RuntimeError("Unable to allocate Brotli encoder!")
 
-    # The 'algorithm' for working out how big to make this buffer is from the
-    # Brotli source code, brotlimodule.cc.
-    original_output_size = int(math.ceil(len(data) + (len(data) >> 2) + 10240))
-    available_out = ffi.new("size_t *")
-    available_out[0] = original_output_size
-    output_buffer = ffi.new("uint8_t []", available_out[0])
-    ptr_to_output_buffer = ffi.new("uint8_t **", output_buffer)
-    input_size = ffi.new("size_t *", len(data))
-    input_buffer = ffi.new("uint8_t []", data)
-    ptr_to_input_buffer = ffi.new("uint8_t **", input_buffer)
+        enc = ffi.gc(enc, lib.BrotliEncoderDestroyInstance)
 
-    rc = lib.BrotliEncoderCompressStream(
-        brotli_encoder,
-        lib.BROTLI_OPERATION_FINISH,
-        input_size,
-        ptr_to_input_buffer,
-        available_out,
-        ptr_to_output_buffer,
-        ffi.NULL
-    )
-    assert rc == lib.BROTLI_TRUE
-    assert lib.BrotliEncoderIsFinished(brotli_encoder) == lib.BROTLI_TRUE
-    assert lib.BrotliEncoderHasMoreOutput(brotli_encoder) == lib.BROTLI_FALSE
+        # Configure the encoder appropriately.
+        lib.BrotliEncoderSetParameter(enc, lib.BROTLI_PARAM_MODE, mode)
+        lib.BrotliEncoderSetParameter(enc, lib.BROTLI_PARAM_QUALITY, quality)
+        lib.BrotliEncoderSetParameter(enc, lib.BROTLI_PARAM_LGWIN, lgwin)
+        lib.BrotliEncoderSetParameter(enc, lib.BROTLI_PARAM_LGBLOCK, lgblock)
 
-    size_of_output = original_output_size - available_out[0]
-    return ffi.buffer(output_buffer, size_of_output)[:]
+        if dictionary:
+            self._dictionary = ffi.new("uint8_t []", dictionary)
+            self._dictionary_size = len(dictionary)
+            lib.BrotliEncoderSetCustomDictionary(
+                enc, self._dictionary_size, self._dictionary
+            )
+
+        self._encoder = enc
+
+    def _compress(self, data, operation):
+        """
+        This private method compresses some data in a given mode. This is used
+        because almost all of the code uses the exact same setup. It wouldn't
+        have to, but it doesn't hurt at all.
+        """
+        # The 'algorithm' for working out how big to make this buffer is from
+        # the Brotli source code, brotlimodule.cc.
+        original_output_size = int(
+            math.ceil(len(data) + (len(data) >> 2) + 10240)
+        )
+        available_out = ffi.new("size_t *")
+        available_out[0] = original_output_size
+        output_buffer = ffi.new("uint8_t []", available_out[0])
+        ptr_to_output_buffer = ffi.new("uint8_t **", output_buffer)
+        input_size = ffi.new("size_t *", len(data))
+        input_buffer = ffi.new("uint8_t []", data)
+        ptr_to_input_buffer = ffi.new("uint8_t **", input_buffer)
+
+        rc = lib.BrotliEncoderCompressStream(
+            self._encoder,
+            operation,
+            input_size,
+            ptr_to_input_buffer,
+            available_out,
+            ptr_to_output_buffer,
+            ffi.NULL
+        )
+        assert rc == lib.BROTLI_TRUE
+        assert not input_size[0]
+
+        size_of_output = original_output_size - available_out[0]
+        return ffi.buffer(output_buffer, size_of_output)[:]
+
+    def compress(self, data):
+        """
+        Incrementally compress more data.
+
+        :param data: A bytestring containing data to compress.
+        :returns: A bytestring containing some compressed data. May return the
+            empty bytestring if not enough data has been inserted into the
+            compressor to create the output yet.
+        """
+        return self._compress(data, lib.BROTLI_OPERATION_PROCESS)
+
+    def flush(self):
+        """
+        Flush the compressor. This will emit the remaining output data, but
+        will not destroy the compressor. It can be used, for example, to ensure
+        that given chunks of content will decompress immediately.
+        """
+        chunks = []
+        chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
+
+        while lib.BrotliEncoderHasMoreOutput(self._encoder) == lib.BROTLI_TRUE:
+            chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
+
+        return b''.join(chunks)
+
+    def finish(self):
+        """
+        Finish the compressor. This will emit the remaining output data and
+        transition the compressor to a completed state. The compressor cannot
+        be used again after this point, and must be replaced.
+        """
+        chunks = []
+        while lib.BrotliEncoderIsFinished(self._encoder) == lib.BROTLI_FALSE:
+            chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FINISH))
+
+        return b''.join(chunks)
 
 
 class Decompressor(object):

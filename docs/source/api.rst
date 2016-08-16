@@ -18,6 +18,9 @@ Compression
 
 .. automethod:: brotli.compress
 
+.. autoclass:: brotli.Compressor
+   :members:
+
 .. autoclass:: brotli.BrotliEncoderMode
    :members:
 
