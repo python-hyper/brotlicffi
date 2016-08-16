@@ -11,7 +11,7 @@ JENKINS_URL = "https://jenkins.cryptography.io/job/brotlipy-wheel-builder"
 
 
 @invoke.task
-def download_artifacts():
+def download_artifacts(ctx):
     session = requests.Session()
 
     response = session.get(
