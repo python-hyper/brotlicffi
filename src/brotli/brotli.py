@@ -13,17 +13,49 @@ class BrotliEncoderMode(enum.IntEnum):
     """
     #: Default compression mode. The compressor does not know anything in
     #: advance about the properties of the input.
-    BROTLI_MODE_GENERIC = lib.BROTLI_MODE_GENERIC
+    GENERIC = lib.BROTLI_MODE_GENERIC
 
     #: Compression mode for UTF-8 format text input.
-    BROTLI_MODE_TEXT = lib.BROTLI_MODE_TEXT
+    TEXT = lib.BROTLI_MODE_TEXT
 
     #: Compression mode used in WOFF 2.0
-    BROTLI_MODE_FONT = lib.BROTLI_MODE_FONT
+    FONT = lib.BROTLI_MODE_FONT
 
+# Define some names for compatibility with the C module.
 
 #: The default compression mode for brotli.
-BROTLI_DEFAULT_MODE = BrotliEncoderMode(lib.BROTLI_DEFAULT_MODE)
+DEFAULT_MODE = BrotliEncoderMode(lib.BROTLI_DEFAULT_MODE)
+
+#: A compression mode where the compressor does not know anything in advance
+#: about the properties of the input.
+#:
+#: .. note:: This name is defined for compatibility with the Brotli C
+#:           extension. If you're not interested in that compatibility, it is
+#:           recommended that you use :class:`BrotliEncoderMode
+#:           <brotli.BrotliEncoderMode>` instead.
+#:
+#: .. versionadded:: 0.5.0
+MODE_GENERIC = BrotliEncoderMode.GENERIC
+
+#: A compression mode for UTF-8 format text input.
+#:
+#: .. note:: This name is defined for compatibility with the Brotli C
+#:           extension. If you're not interested in that compatibility, it is
+#:           recommended that you use :class:`BrotliEncoderMode
+#:           <brotli.BrotliEncoderMode>` instead.
+#:
+#: .. versionadded:: 0.5.0
+MODE_TEXT = BrotliEncoderMode.TEXT
+
+#: The compression mode used in WOFF 2.0.
+#:
+#: .. note:: This name is defined for compatibility with the Brotli C
+#:           extension. If you're not interested in that compatibility, it is
+#:           recommended that you use :class:`BrotliEncoderMode
+#:           <brotli.BrotliEncoderMode>` instead.
+#:
+#: .. versionadded:: 0.5.0
+MODE_FONT = BrotliEncoderMode.FONT
 
 
 def decompress(data):
@@ -37,7 +69,7 @@ def decompress(data):
 
 
 def compress(data,
-             mode=BROTLI_DEFAULT_MODE,
+             mode=DEFAULT_MODE,
              quality=lib.BROTLI_DEFAULT_QUALITY,
              lgwin=lib.BROTLI_DEFAULT_WINDOW,
              lgblock=0,
@@ -130,7 +162,7 @@ class Compressor(object):
     _dictionary_size = None
 
     def __init__(self,
-                 mode=BROTLI_DEFAULT_MODE,
+                 mode=DEFAULT_MODE,
                  quality=lib.BROTLI_DEFAULT_QUALITY,
                  lgwin=lib.BROTLI_DEFAULT_WINDOW,
                  lgblock=0,
