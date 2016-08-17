@@ -25,3 +25,10 @@ Compression
    :members:
 
 .. autodata:: brotli.BROTLI_DEFAULT_MODE
+
+Errors
+------
+
+.. autoclass:: brotli.Error
+
+.. autodata:: brotli.error
