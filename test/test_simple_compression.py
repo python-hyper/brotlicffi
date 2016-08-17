@@ -7,6 +7,8 @@ Tests for compression of single chunks.
 """
 import brotli
 
+import pytest
+
 from hypothesis import given
 from hypothesis.strategies import binary, integers, sampled_from, one_of
 
@@ -110,3 +112,18 @@ def test_compressed_data_with_dictionaries(s, dictionary):
     compressed = brotli.compress(s, dictionary=dictionary)
     uncompressed = d.decompress(compressed)
     assert uncompressed == s
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"mode": 52},
+        {"quality": 52},
+        {"lgwin": 52},
+        {"lgblock": 52},
+    ]
+)
+@pytest.mark.parametrize("exception_cls", [brotli.Error, brotli.error])
+def test_bad_compressor_parameters(params, exception_cls):
+    with pytest.raises(exception_cls):
+        brotli.Compressor(**params)
