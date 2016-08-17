@@ -5,6 +5,19 @@ import enum
 from ._brotli import ffi, lib
 
 
+class Error(Exception):
+    """
+    Raised whenever an error is encountered with compressing or decompressing
+    data using brotlipy.
+    """
+    pass
+
+
+#: An alias of :class:`Error <brotli.Error>` that exists for compatibility with
+#: the original C brotli module.
+error = Error
+
+
 class BrotliEncoderMode(enum.IntEnum):
     """
     Compression modes for the Brotli encoder.
@@ -129,6 +142,19 @@ def compress(data,
     return compressed_data
 
 
+def _set_parameter(encoder, parameter, parameter_name, val):
+    """
+    This helper function sets a specific Brotli encoder parameter, checking
+    the return code and raising :class:`Error <brotli.Error>` if it is
+    invalid.
+    """
+    rc = lib.BrotliEncoderSetParameter(encoder, parameter, val)
+    if rc != lib.BROTLI_TRUE:
+        raise Error(
+            "Invalid value for parameter %s: %d" % (parameter_name, val)
+        )
+
+
 class Compressor(object):
     """
     An object that allows for streaming compression of data using the Brotli
@@ -176,10 +202,10 @@ class Compressor(object):
         enc = ffi.gc(enc, lib.BrotliEncoderDestroyInstance)
 
         # Configure the encoder appropriately.
-        lib.BrotliEncoderSetParameter(enc, lib.BROTLI_PARAM_MODE, mode)
-        lib.BrotliEncoderSetParameter(enc, lib.BROTLI_PARAM_QUALITY, quality)
-        lib.BrotliEncoderSetParameter(enc, lib.BROTLI_PARAM_LGWIN, lgwin)
-        lib.BrotliEncoderSetParameter(enc, lib.BROTLI_PARAM_LGBLOCK, lgblock)
+        _set_parameter(enc, lib.BROTLI_PARAM_MODE, "mode", mode)
+        _set_parameter(enc, lib.BROTLI_PARAM_QUALITY, "quality", quality)
+        _set_parameter(enc, lib.BROTLI_PARAM_LGWIN, "lgwin", lgwin)
+        _set_parameter(enc, lib.BROTLI_PARAM_LGBLOCK, "lgblock", lgblock)
 
         if dictionary:
             self._dictionary = ffi.new("uint8_t []", dictionary)
@@ -218,7 +244,9 @@ class Compressor(object):
             ptr_to_output_buffer,
             ffi.NULL
         )
-        assert rc == lib.BROTLI_TRUE
+        if rc != lib.BROTLI_TRUE:  # noqa
+            raise Error("Error encountered compressing data.")
+
         assert not input_size[0]
 
         size_of_output = original_output_size - available_out[0]
@@ -323,7 +351,9 @@ class Decompressor(object):
             if rc == lib.BROTLI_DECODER_RESULT_ERROR:
                 error_code = lib.BrotliDecoderGetErrorCode(self._decoder)
                 error_message = lib.BrotliDecoderErrorString(error_code)
-                raise ValueError("Bad bytes: %s" % ffi.string(error_message))
+                raise Error(
+                    "Decompression error: %s" % ffi.string(error_message)
+                )
 
             # Next, copy the result out.
             chunk = ffi.buffer(out_buffer, buffer_size - available_out[0])[:]
