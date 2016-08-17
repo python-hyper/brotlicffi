@@ -142,6 +142,45 @@ def compress(data,
     return compressed_data
 
 
+def _validate_mode(val):
+    """
+    Validate that the mode is valid.
+    """
+    try:
+        val = BrotliEncoderMode(val)
+    except ValueError:
+        raise Error("%s is not a valid encoder mode" % val)
+
+
+def _validate_quality(val):
+    """
+    Validate that the quality setting is valid.
+    """
+    if not (0 <= val <= 11):
+        raise Error(
+            "%d is not a valid quality, must be between 0 and 11" % val
+        )
+
+
+def _validate_lgwin(val):
+    """
+    Validate that the lgwin setting is valid.
+    """
+    if not (10 <= val <= 24):
+        raise Error("%d is not a valid lgwin, must be between 10 and 24" % val)
+
+
+def _validate_lgblock(val):
+    """
+    Validate that the lgblock setting is valid.
+    """
+    if (val != 0) and not (16 <= val <= 24):
+        raise Error(
+            "%d is not a valid lgblock, must be either 0 or between 16 and 24"
+            % val
+        )
+
+
 def _set_parameter(encoder, parameter, parameter_name, val):
     """
     This helper function sets a specific Brotli encoder parameter, checking
@@ -149,9 +188,24 @@ def _set_parameter(encoder, parameter, parameter_name, val):
     invalid.
     """
     rc = lib.BrotliEncoderSetParameter(encoder, parameter, val)
-    if rc != lib.BROTLI_TRUE:
+
+    if parameter == lib.BROTLI_PARAM_MODE:
+        _validate_mode(val)
+    elif parameter == lib.BROTLI_PARAM_QUALITY:
+        _validate_quality(val)
+    elif parameter == lib.BROTLI_PARAM_LGWIN:
+        _validate_lgwin(val)
+    elif parameter == lib.BROTLI_PARAM_LGBLOCK:
+        _validate_lgblock(val)
+    else:  # pragma: no cover
+        raise RuntimeError("Unexpected parameter!")
+
+    # This block is defensive: I see no way to hit it, but as long as the
+    # function returns a value we can live in hope that the brotli folks will
+    # enforce their own constraints.
+    if rc != lib.BROTLI_TRUE:  # pragma: no cover
         raise Error(
-            "Invalid value for parameter %s: %d" % (parameter_name, val)
+            "Error setting parameter %s: %d" % (parameter_name, val)
         )
 
 
@@ -244,7 +298,7 @@ class Compressor(object):
             ptr_to_output_buffer,
             ffi.NULL
         )
-        if rc != lib.BROTLI_TRUE:  # noqa
+        if rc != lib.BROTLI_TRUE:  # pragma: no cover
             raise Error("Error encountered compressing data.")
 
         assert not input_size[0]
