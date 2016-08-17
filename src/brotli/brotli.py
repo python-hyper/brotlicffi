@@ -9,12 +9,16 @@ class Error(Exception):
     """
     Raised whenever an error is encountered with compressing or decompressing
     data using brotlipy.
+
+    .. versionadded:: 0.5.1
     """
     pass
 
 
 #: An alias of :class:`Error <brotli.Error>` that exists for compatibility with
 #: the original C brotli module.
+#:
+#: .. versionadded: 0.5.1
 error = Error
 
 

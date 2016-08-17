@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.5.1 (2016-08-17)
+------------------
+
+- Update to v0.5.2 of the Brotli library.
+- Add new exception type (``Error``).
+- Add compatiblity with C++ brotli library by aliasing ``Error`` to ``error``.
+- Extra error checking of input parameters to the compressor.
+
 0.5.0 (2016-08-16)
 ------------------
 
