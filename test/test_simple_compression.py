@@ -26,7 +26,7 @@ def test_roundtrip_compression_with_files(simple_compressed_file):
 
 
 @given(
-    chunk_size=integers(min_value=1, max_value=2**32),
+    chunk_size=integers(min_value=1, max_value=2**12),
     mode=sampled_from(list(brotli.BrotliEncoderMode)),
     quality=integers(min_value=0, max_value=11),
     lgwin=integers(min_value=10, max_value=24),
@@ -63,7 +63,7 @@ def test_streaming_compression(one_compressed_file,
 
 
 @given(
-    chunk_size=integers(min_value=1, max_value=2**32),
+    chunk_size=integers(min_value=1, max_value=2**12),
     mode=sampled_from(list(brotli.BrotliEncoderMode)),
     quality=integers(min_value=0, max_value=11),
     lgwin=integers(min_value=10, max_value=24),
