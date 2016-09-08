@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.6.0 (2016-09-08)
+------------------
+
+- Resolved a bug where ``decompress()`` would return an empty bytestring
+  instead of erroring if the provided bytestring was small enough.
+- Added the ``finish()`` method to the streaming decompressor.
+
 0.5.1 (2016-08-17)
 ------------------
 

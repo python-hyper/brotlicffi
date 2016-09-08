@@ -8,7 +8,7 @@ long_description = (
 
 setup(
     name="brotlipy",
-    version="0.5.1",
+    version="0.6.0",
 
     description="Python binding to the Brotli library",
     long_description=long_description,
