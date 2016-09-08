@@ -82,7 +82,9 @@ def decompress(data):
     :param data: A bytestring containing Brotli-compressed data.
     """
     d = Decompressor()
-    return d.decompress(data)
+    data = d.decompress(data)
+    d.finish()
+    return data
 
 
 def compress(data,
@@ -418,6 +420,7 @@ class Decompressor(object):
             chunks.append(chunk)
 
             if rc == lib.BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT:
+                print "needs more input"
                 assert available_in[0] == 0
                 break
             elif rc == lib.BROTLI_DECODER_RESULT_SUCCESS:
@@ -433,9 +436,6 @@ class Decompressor(object):
         Complete the decompression, return whatever data is remaining to be
         decompressed.
 
-        This action also resets the decompression state, allowing the
-        decompressor to be used again.
-
         .. deprecated:: 0.4.0
 
             This method is no longer required, as decompress() will now
@@ -443,5 +443,21 @@ class Decompressor(object):
 
         :returns: A bytestring containing the remaining decompressed data.
         """
+        return b''
+
+    def finish(self):
+        """
+        Finish the decompressor. As the decompressor decompresses eagerly, this
+        will never actually emit any data. However, it will potentially throw
+        errors if a truncated or damaged data stream has been used.
+
+        Note that, once this method is called, the decompressor is no longer
+        safe for further use and must be thrown away.
+        """
+        assert (
+            lib.BrotliDecoderHasMoreOutput(self._decoder) == lib.BROTLI_FALSE
+        )
+        if lib.BrotliDecoderIsFinished(self._decoder) == lib.BROTLI_FALSE:
+            raise Error("Decompression error: incomplete compressed stream.")
 
         return b''
