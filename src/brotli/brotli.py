@@ -420,7 +420,6 @@ class Decompressor(object):
             chunks.append(chunk)
 
             if rc == lib.BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT:
-                print "needs more input"
                 assert available_in[0] == 0
                 break
             elif rc == lib.BROTLI_DECODER_RESULT_SUCCESS:
