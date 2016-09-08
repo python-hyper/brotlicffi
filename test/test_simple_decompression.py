@@ -68,9 +68,10 @@ def test_streaming_decompression_fails_properly_on_garbage(exception_cls):
 
 
 @pytest.mark.parametrize('exception_cls', [brotli.Error, brotli.error])
-def test_decompression_fails_properly_on_garbage(exception_cls):
+@pytest.mark.parametrize('bogus', (b'some random garbage', b'bogus'))
+def test_decompression_fails_properly_on_garbage(bogus, exception_cls):
     """
     Garbage data properly fails decompression.
     """
     with pytest.raises(exception_cls):
-        brotli.decompress(b'some random garbage')
+        brotli.decompress(bogus)
