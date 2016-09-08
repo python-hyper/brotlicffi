@@ -33,6 +33,7 @@ def test_decompressobj(simple_compressed_file):
     o = brotli.Decompressor()
     data = o.decompress(compressed_data)
     data += o.flush()
+    data += o.finish()
 
     assert data == uncompressed_data
 
@@ -53,6 +54,7 @@ def test_drip_feed(simple_compressed_file):
         outdata.append(o.decompress(compressed_data[i:i+1]))
 
     outdata.append(o.flush())
+    outdata.append(o.finish())
 
     assert b''.join(outdata) == uncompressed_data
 
