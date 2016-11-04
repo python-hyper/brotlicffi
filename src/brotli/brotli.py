@@ -75,13 +75,14 @@ MODE_TEXT = BrotliEncoderMode.TEXT
 MODE_FONT = BrotliEncoderMode.FONT
 
 
-def decompress(data):
+def decompress(data,dictionary=b''):
     """
     Decompress a complete Brotli-compressed string.
 
     :param data: A bytestring containing Brotli-compressed data.
+    :param dictionary: A pre-set dictionary for LZ77.
     """
-    d = Decompressor()
+    d = Decompressor(dictionary=dictionary)
     data = d.decompress(data)
     d.finish()
     return data
