@@ -38,10 +38,12 @@ class BrotliEncoderMode(enum.IntEnum):
     #: Compression mode used in WOFF 2.0
     FONT = lib.BROTLI_MODE_FONT
 
+
 # Define some names for compatibility with the C module.
 
 #: The default compression mode for brotli.
 DEFAULT_MODE = BrotliEncoderMode(lib.BROTLI_DEFAULT_MODE)
+
 
 #: A compression mode where the compressor does not know anything in advance
 #: about the properties of the input.
@@ -54,6 +56,7 @@ DEFAULT_MODE = BrotliEncoderMode(lib.BROTLI_DEFAULT_MODE)
 #: .. versionadded:: 0.5.0
 MODE_GENERIC = BrotliEncoderMode.GENERIC
 
+
 #: A compression mode for UTF-8 format text input.
 #:
 #: .. note:: This name is defined for compatibility with the Brotli C
@@ -63,6 +66,7 @@ MODE_GENERIC = BrotliEncoderMode.GENERIC
 #:
 #: .. versionadded:: 0.5.0
 MODE_TEXT = BrotliEncoderMode.TEXT
+
 
 #: The compression mode used in WOFF 2.0.
 #:
