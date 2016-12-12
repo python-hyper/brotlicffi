@@ -20,7 +20,6 @@ install:
           export PYPY_VERSION="5.6.0"
           "$PYENV_ROOT/bin/pyenv" install --skip-existing "pypy-$PYPY_VERSION"
           virtualenv --python="$PYENV_ROOT/versions/pypy-$PYPY_VERSION/bin/python" "$HOME/virtualenvs/pypy-$PYPY_VERSION"
-          source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
         fi
   - "pip install -U pip 'setuptools!=26.*'"
   - "pip install ."
@@ -30,6 +29,7 @@ before_script: "flake8 --max-complexity 10 src/brotli test"
 script:
   - >
       if [[ $TRAVIS_PYTHON_VERSION == pypy ]]; then
+        source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
         py.test test/
       else
         py.test --cov brotli test/
