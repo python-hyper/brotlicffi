@@ -1,3 +1,4 @@
+sudo: false
 language: python
 
 python:
@@ -15,7 +16,6 @@ env:
   global:
       - PATH="/usr/lib/ccache:$PATH"    
 
-sudo: false
 install:
   - "pip install -U pip 'setuptools!=26.*'"
   - "pip install ."
