@@ -9,7 +9,7 @@ python:
 
 sudo: false
 install:
-    - |
+  - |
         if [ "$TRAVIS_PYTHON_VERSION" = "pypy" ]; then
           export PYENV_ROOT="$HOME/.pyenv"
           if [ -f "$PYENV_ROOT/bin/pyenv" ]; then
