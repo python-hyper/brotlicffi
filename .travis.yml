@@ -5,6 +5,15 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
+  
+cache:
+  pip: true
+  directories:
+    - $HOME/.ccache
+    
+env:
+  global:
+      - PATH="/usr/lib/ccache:$PATH"    
 
 sudo: false
 install:
