@@ -1,9 +1,26 @@
 #!/usr/bin/env python
 from setuptools import find_packages, setup
+from setuptools.command.build_ext import build_ext
 
 long_description = (
     open("README.rst").read() + '\n\n' + open("HISTORY.rst").read()
 )
+
+class BuildClibBeforeExt(build_ext):
+    """ Setuptools `develop` command (used by `pip install -e .`) only calls
+    `build_ext`, unlike `install` which calls `build` and all its related
+    sub-commands. Linking the CFFI extension with the libbrotli static library
+    fails since the `build_clib` command is not called in the former case.
+
+    This custom `build_ext` class ensures that `build_clib` command is run
+    before the CFFI extension module is compiled.
+
+    https://github.com/pypa/pip/issues/4523
+    """
+
+    def run(self):
+        self.run_command("build_clib")
+        build_ext.run(self)
 
 
 setup(
@@ -70,6 +87,10 @@ setup(
     ],
 
     zip_safe=False,
+
+    cmdclass={
+        'build_ext': BuildClibBeforeExt,
+    },
 
     classifiers=[
         "Programming Language :: Python :: Implementation :: CPython",
