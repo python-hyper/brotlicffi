@@ -11,11 +11,11 @@ if 'win32' not in str(sys.platform).lower():
 
 ffi.set_source(
     "_brotli",
-    """#include <dec/decode.h>
-       #include <enc/encode.h>
+    """#include <brotli/decode.h>
+       #include <brotli/encode.h>
     """,
     libraries=libraries,
-    include_dirs=["libbrotli", "src/brotli"]
+    include_dirs=["libbrotli", "libbrotli/include"]
 )
 
 ffi.cdef("""

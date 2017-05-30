@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 long_description = (
     open("README.rst").read() + '\n\n' + open("HISTORY.rst").read()
@@ -8,7 +8,7 @@ long_description = (
 
 setup(
     name="brotlipy",
-    version="0.6.0",
+    version="0.7.0",
 
     description="Python binding to the Brotli library",
     long_description=long_description,
@@ -38,36 +38,34 @@ setup(
     libraries=[
         ("libbrotli", {
             "include_dirs": [
-                "libbrotli/enc",
-                "libbrotli/dec",
-                "libbrotli/common",
+                "libbrotli/include",
+                "libbrotli/",
                 "src/brotli"
             ],
             "sources": [
-                "libbrotli/common/dictionary.c",
-                "libbrotli/dec/bit_reader.c",
-                "libbrotli/dec/decode.c",
-                "libbrotli/dec/huffman.c",
-                "libbrotli/dec/state.c",
-                "libbrotli/enc/backward_references.c",
-                "libbrotli/enc/bit_cost.c",
-                "libbrotli/enc/block_splitter.c",
-                "libbrotli/enc/brotli_bit_stream.c",
-                "libbrotli/enc/cluster.c",
-                "libbrotli/enc/compress_fragment.c",
-                "libbrotli/enc/compress_fragment_two_pass.c",
-                "libbrotli/enc/encode.c",
-                "libbrotli/enc/entropy_encode.c",
-                "libbrotli/enc/histogram.c",
-                "libbrotli/enc/literal_cost.c",
-                "libbrotli/enc/memory.c",
-                "libbrotli/enc/metablock.c",
-                "libbrotli/enc/static_dict.c",
-                "libbrotli/enc/utf8_util.c",
-                "libbrotli/enc/compressor.cc",
-                "libbrotli/enc/encode_parallel.cc",
-                "libbrotli/enc/streams.cc",
-            ],
+                'libbrotli/common/dictionary.c',
+                'libbrotli/dec/huffman.c',
+                'libbrotli/dec/bit_reader.c',
+                'libbrotli/dec/decode.c',
+                'libbrotli/dec/state.c',
+                'libbrotli/enc/backward_references.c',
+                'libbrotli/enc/backward_references_hq.c',
+                'libbrotli/enc/bit_cost.c',
+                'libbrotli/enc/block_splitter.c',
+                'libbrotli/enc/histogram.c',
+                'libbrotli/enc/memory.c',
+                'libbrotli/enc/literal_cost.c',
+                'libbrotli/enc/brotli_bit_stream.c',
+                'libbrotli/enc/compress_fragment_two_pass.c',
+                'libbrotli/enc/compress_fragment.c',
+                'libbrotli/enc/cluster.c',
+                'libbrotli/enc/utf8_util.c',
+                'libbrotli/enc/encode.c',
+                'libbrotli/enc/metablock.c',
+                'libbrotli/enc/static_dict.c',
+                'libbrotli/enc/dictionary_hash.c',
+                'libbrotli/enc/entropy_encode.c'
+            ]
         }),
     ],
 
