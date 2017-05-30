@@ -16,7 +16,7 @@ ffi.set_source(
        #include <brotli/encode.h>
     """,
     libraries=libraries,
-    include_dirs=["libbrotli", "libbrotli/include", "libbrotli/enc", "libbrotli/dec", "src/brotli"]
+    include_dirs=["libbrotli", "libbrotli/include"]
 )
 
 ffi.cdef("""
