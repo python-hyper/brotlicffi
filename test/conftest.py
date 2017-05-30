@@ -15,7 +15,7 @@ compressed_simple_test_files = set(
 )
 
 
-@pytest.fixture(params=compressed_simple_test_files)
+@pytest.fixture(params=sorted(compressed_simple_test_files))
 def simple_compressed_file(request):
     """
     Returns a two-tuple: (uncompressed_file, compressed_file), from the Brotli
