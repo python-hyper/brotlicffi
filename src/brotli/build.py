@@ -2,7 +2,6 @@
 import sys
 
 from cffi import FFI
-
 ffi = FFI()
 
 libraries = ['libbrotli']
