@@ -8,15 +8,15 @@ python:
   - "3.5"
   - "3.6"
   - "pypy-5.3.1"
-  
+
 cache:
   pip: true
   directories:
     - $HOME/.ccache
-    
+
 env:
   global:
-      - PATH="/usr/lib/ccache:$PATH"    
+      - PATH="/usr/lib/ccache:$PATH"
 
 install:
   - "pip install -U pip 'setuptools!=26.*'"
@@ -27,7 +27,7 @@ before_script: "flake8 --max-complexity 10 src/brotli test"
 script:
   - >
       if [[ $TRAVIS_PYTHON_VERSION == pypy ]]; then
-        py.test test/
+        py.test -n 2 test/
       else
-        py.test --cov brotli test/
+        py.test -n 2 --cov brotli test/
       fi
