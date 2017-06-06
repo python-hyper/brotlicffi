@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
 
 from cffi import FFI
 ffi = FFI()
 
-libraries = ['libbrotli']
+USE_SHARED_BROTLI = os.environ.get("USE_SHARED_BROTLI")
+if USE_SHARED_BROTLI != "1":
+    libraries = ['libbrotli']
+else:
+    libraries = ['brotlienc', 'brotlidec']
+
 if 'win32' not in str(sys.platform).lower():
     libraries.append('stdc++')
 

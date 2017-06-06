@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
 
@@ -22,37 +23,10 @@ class BuildClibBeforeExt(build_ext):
         self.run_command("build_clib")
         build_ext.run(self)
 
-
-setup(
-    name="brotlipy",
-    version="0.7.0",
-
-    description="Python binding to the Brotli library",
-    long_description=long_description,
-    url="https://github.com/python-hyper/brotlipy/",
-    license="MIT",
-
-    author="Cory Benfield",
-    author_email="cory@lukasa.co.uk",
-
-    setup_requires=[
-        "cffi>=1.0.0",
-    ],
-    install_requires=[
-        "cffi>=1.0.0",
-    ],
-    extras_require={
-        ':python_version == "2.7" or python_version == "3.3"': ['enum34>=1.0.4, <2'],
-    },
-
-    cffi_modules=["src/brotli/build.py:ffi"],
-
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-
-    ext_package="brotli",
-
-    libraries=[
+libraries = []
+USE_SHARED_BROTLI = os.environ.get("USE_SHARED_BROTLI")
+if USE_SHARED_BROTLI != "1":
+    libraries = [
         ("libbrotli", {
             "include_dirs": [
                 "libbrotli/include",
@@ -84,7 +58,38 @@ setup(
                 'libbrotli/enc/entropy_encode.c'
             ]
         }),
+    ]
+
+setup(
+    name="brotlipy",
+    version="0.7.0",
+
+    description="Python binding to the Brotli library",
+    long_description=long_description,
+    url="https://github.com/python-hyper/brotlipy/",
+    license="MIT",
+
+    author="Cory Benfield",
+    author_email="cory@lukasa.co.uk",
+
+    setup_requires=[
+        "cffi>=1.0.0",
     ],
+    install_requires=[
+        "cffi>=1.0.0",
+    ],
+    extras_require={
+        ':python_version == "2.7" or python_version == "3.3"': ['enum34>=1.0.4, <2'],
+    },
+
+    cffi_modules=["src/brotli/build.py:ffi"],
+
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+
+    ext_package="brotli",
+
+    libraries=libraries,
 
     zip_safe=False,
 
