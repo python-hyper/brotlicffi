@@ -13,12 +13,18 @@ cache:
   pip: true
   directories:
     - $HOME/.ccache
-    
+
+matrix:
+  include:
+    - env: USE_SHARED_BROTLI=1
+      sudo: true
+
 env:
   global:
       - PATH="/usr/lib/ccache:$PATH"    
 
 install:
+  - "if [[ $USE_SHARED_BROTLI == 1 ]]; then mkdir build; cd build; cmake ../libbrotli -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib; make; sudo make install; cd ..; fi"
   - "pip install -U pip 'setuptools!=26.*'"
   - "pip install ."
   - "pip install -r test_requirements.txt"
