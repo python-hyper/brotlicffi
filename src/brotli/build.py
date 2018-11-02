@@ -12,7 +12,10 @@ else:
     libraries = ['brotlienc', 'brotlidec']
 
 if 'win32' not in str(sys.platform).lower():
-    libraries.append('stdc++')
+    if 'darwin' in str(sys.platform).lower():
+        libraries.append('c++')
+    else:
+        libraries.append('stdc++')
 
 
 ffi.set_source(
