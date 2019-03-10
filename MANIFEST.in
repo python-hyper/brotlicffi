@@ -9,3 +9,8 @@ recursive-include libbrotli/enc *.c *.h *.cc
 recursive-include libbrotli/dec *.c *.h *.cc
 recursive-include libbrotli/common *.c *.h *.cc
 recursive-include libbrotli/include *.c *.h *.cc
+
+# Include test and build files, excluding test data
+include test_requirements.txt tox.ini Makefile
+include test/conftest.py
+recursive-include test *.py
