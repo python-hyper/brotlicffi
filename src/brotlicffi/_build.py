@@ -11,8 +11,8 @@ if USE_SHARED_BROTLI != "1":
 else:
     libraries = ['brotlienc', 'brotlidec']
 
-if 'win32' not in str(sys.platform).lower():
-    libraries.append('stdc++')
+    if 'win32' not in str(sys.platform).lower():
+        libraries.append('stdc++')
 
 
 ffi.set_source(
