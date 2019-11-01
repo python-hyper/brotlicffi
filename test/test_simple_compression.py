@@ -106,14 +106,6 @@ def test_compressed_data_roundtrips(s):
     assert brotli.decompress(brotli.compress(s)) == s
 
 
-@given(binary(), binary())
-def test_compressed_data_with_dictionaries(s, dictionary):
-    d = brotli.Decompressor(dictionary)
-    compressed = brotli.compress(s, dictionary=dictionary)
-    uncompressed = d.decompress(compressed)
-    assert uncompressed == s
-
-
 @pytest.mark.parametrize(
     "params",
     [

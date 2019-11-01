@@ -95,8 +95,7 @@ def compress(data,
              mode=DEFAULT_MODE,
              quality=lib.BROTLI_DEFAULT_QUALITY,
              lgwin=lib.BROTLI_DEFAULT_WINDOW,
-             lgblock=0,
-             dictionary=b''):
+             lgblock=0):
     """
     Compress a string using Brotli.
 
@@ -142,7 +141,6 @@ def compress(data,
         quality=quality,
         lgwin=lgwin,
         lgblock=lgblock,
-        dictionary=dictionary
     )
     compressed_data = compressor._compress(data, lib.BROTLI_OPERATION_FINISH)
     assert lib.BrotliEncoderIsFinished(compressor._encoder) == lib.BROTLI_TRUE
@@ -242,21 +240,13 @@ class Compressor(object):
         range of this value is 16 to 24. If set to 0, the value will be set
         based on ``quality``.
     :type lgblock: ``int``
-
-    :param dictionary: A pre-set dictionary for LZ77. Please use this with
-        caution: if a dictionary is used for compression, the same dictionary
-        **must** be used for decompression!
-    :type dictionary: ``bytes``
     """
-    _dictionary = None
-    _dictionary_size = None
 
     def __init__(self,
                  mode=DEFAULT_MODE,
                  quality=lib.BROTLI_DEFAULT_QUALITY,
                  lgwin=lib.BROTLI_DEFAULT_WINDOW,
-                 lgblock=0,
-                 dictionary=b''):
+                 lgblock=0):
         enc = lib.BrotliEncoderCreateInstance(
             ffi.NULL, ffi.NULL, ffi.NULL
         )
@@ -270,13 +260,6 @@ class Compressor(object):
         _set_parameter(enc, lib.BROTLI_PARAM_QUALITY, "quality", quality)
         _set_parameter(enc, lib.BROTLI_PARAM_LGWIN, "lgwin", lgwin)
         _set_parameter(enc, lib.BROTLI_PARAM_LGBLOCK, "lgblock", lgblock)
-
-        if dictionary:
-            self._dictionary = ffi.new("uint8_t []", dictionary)
-            self._dictionary_size = len(dictionary)
-            lib.BrotliEncoderSetCustomDictionary(
-                enc, self._dictionary_size, self._dictionary
-            )
 
         self._encoder = enc
 
@@ -358,30 +341,11 @@ class Decompressor(object):
     """
     An object that allows for streaming decompression of Brotli-compressed
     data.
-
-    .. versionchanged:: 0.5.0
-       Added ``dictionary`` parameter.
-
-    :param dictionary: A pre-set dictionary for LZ77. Please use this with
-        caution: if a dictionary is used for compression, the same dictionary
-        **must** be used for decompression!
-    :type dictionary: ``bytes``
     """
-    _dictionary = None
-    _dictionary_size = None
 
-    def __init__(self, dictionary=b''):
+    def __init__(self):
         dec = lib.BrotliDecoderCreateInstance(ffi.NULL, ffi.NULL, ffi.NULL)
         self._decoder = ffi.gc(dec, lib.BrotliDecoderDestroyInstance)
-
-        if dictionary:
-            self._dictionary = ffi.new("uint8_t []", dictionary)
-            self._dictionary_size = len(dictionary)
-            lib.BrotliDecoderSetCustomDictionary(
-                self._decoder,
-                self._dictionary_size,
-                self._dictionary
-            )
 
     def decompress(self, data):
         """
