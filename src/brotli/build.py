@@ -11,7 +11,7 @@ if USE_SHARED_BROTLI != "1":
 else:
     libraries = ['brotlienc', 'brotlidec']
 
-if 'win32' not in str(sys.platform).lower():
+if 'win32' not in str(sys.platform).lower() and sys.platform != 'OpenVMS':
     libraries.append('stdc++')
 
 extra_compile_args = []
