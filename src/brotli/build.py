@@ -14,19 +14,20 @@ else:
 if 'win32' not in str(sys.platform).lower() and sys.platform != 'OpenVMS':
     libraries.append('stdc++')
 
-ffi_source = dict(
-    "_brotli",
-    """#include <brotli/decode.h>
-       #include <brotli/encode.h>
-    """,
+ffi_set_source_kwargs = dict(
     libraries=libraries,
     include_dirs=["libbrotli", "libbrotli/include"],
 )
 
 if sys.platform == 'OpenVMS':
-    ffi_source['extra_compile_args'] = ['/WARNINGS=DISABLE=(QUESTCOMPARE,INTCONSTTRUNC)']
+    ffi_set_source_kwargs['extra_compile_args'] = ['/WARNINGS=DISABLE=(QUESTCOMPARE,INTCONSTTRUNC)']
 
-ffi.set_source(**ffi_source)
+ffi.set_source(
+    "_brotli",
+    """#include <brotli/decode.h>
+       #include <brotli/encode.h>
+    """,
+    **ffi_set_source_kwargs)
 
 ffi.cdef("""
     /* common/types.h */
