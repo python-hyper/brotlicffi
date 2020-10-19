@@ -25,7 +25,7 @@ ffi.set_source(
     """,
     libraries=libraries,
     include_dirs=["libbrotli", "libbrotli/include"],
-    extra_compile_args = extra_compile_args,
+    extra_compile_args=extra_compile_args,
 )
 
 ffi.cdef("""
