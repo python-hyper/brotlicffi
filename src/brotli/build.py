@@ -20,7 +20,8 @@ ffi_set_source_kwargs = dict(
 )
 
 if sys.platform == 'OpenVMS':
-    ffi_set_source_kwargs['extra_compile_args'] = ['/WARNINGS=DISABLE=(QUESTCOMPARE,INTCONSTTRUNC)']
+    ffi_set_source_kwargs['extra_compile_args'] = \
+        ['/WARNINGS=DISABLE=(QUESTCOMPARE,INTCONSTTRUNC)']
 
 ffi.set_source(
     "_brotli",
