@@ -9,7 +9,7 @@ import brotli
 
 import pytest
 
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import binary, integers, sampled_from, one_of
 
 
@@ -25,6 +25,8 @@ def test_roundtrip_compression_with_files(simple_compressed_file):
     ) == uncompressed_data
 
 
+@pytest.mark.slow
+@settings(deadline=None)
 @given(
     chunk_size=integers(min_value=1, max_value=2**12),
     mode=sampled_from(list(brotli.BrotliEncoderMode)),
@@ -62,6 +64,8 @@ def test_streaming_compression(one_compressed_file,
         assert decompressed == f.read()
 
 
+@pytest.mark.slow
+@settings(deadline=None)
 @given(
     chunk_size=integers(min_value=1, max_value=2**12),
     mode=sampled_from(list(brotli.BrotliEncoderMode)),
