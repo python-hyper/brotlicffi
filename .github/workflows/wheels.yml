@@ -31,4 +31,5 @@ jobs:
           CIBW_BUILD: cp27-${{ matrix.name }}* cp35-${{ matrix.name }}* pp*-${{ matrix.name }}*
       - uses: actions/upload-artifact@v2
         with:
+          name: wheels-${{ matrix.name }}
           path: ./wheelhouse/*.whl
