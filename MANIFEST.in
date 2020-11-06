@@ -9,3 +9,6 @@ recursive-include libbrotli/enc *.c *.h *.cc
 recursive-include libbrotli/dec *.c *.h *.cc
 recursive-include libbrotli/common *.c *.h *.cc
 recursive-include libbrotli/include *.c *.h *.cc
+
+# Include test files
+recursive-include test/ *.py
