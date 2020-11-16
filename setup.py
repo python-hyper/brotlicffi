@@ -33,7 +33,7 @@ if USE_SHARED_BROTLI != "1":
             "include_dirs": [
                 "libbrotli/include",
                 "libbrotli/",
-                "src/brotli"
+                "src/brotlicffi"
             ],
             "sources": [
                 'libbrotli/common/dictionary.c',
@@ -76,12 +76,12 @@ if sys.version_info > (3,) and platform.python_implementation() == "CPython":
         cmdclass['bdist_wheel'] = BDistWheel
 
 setup(
-    name="brotlipy",
+    name="brotlicffi",
     version="0.7.0",
 
-    description="Python binding to the Brotli library",
+    description="Python CFFI bindings to the Brotli library",
     long_description=long_description,
-    url="https://github.com/python-hyper/brotlipy/",
+    url="https://github.com/python-hyper/brotlicffi",
     license="MIT",
 
     author="Cory Benfield",
@@ -93,17 +93,10 @@ setup(
     install_requires=[
         "cffi>=1.0.0",
     ],
-    extras_require={
-        ':python_version == "2.7" or python_version == "3.3"': ['enum34>=1.0.4, <2'],
-    },
-
-    cffi_modules=["src/brotli/build.py:ffi"],
-
+    cffi_modules=["src/brotlicffi/_build.py:ffi"],
     packages=find_packages('src'),
     package_dir={'': 'src'},
-
-    ext_package="brotli",
-
+    ext_package="brotlicffi",
     libraries=libraries,
 
     zip_safe=False,
@@ -120,5 +113,8 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ]
 )

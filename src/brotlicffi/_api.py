@@ -2,7 +2,7 @@
 import math
 import enum
 
-from ._brotli import ffi, lib
+from ._brotlicffi import ffi, lib
 
 
 class Error(Exception):
