@@ -16,7 +16,7 @@ if 'win32' not in str(sys.platform).lower():
 
 
 ffi.set_source(
-    "_brotli",
+    "_brotlicffi",
     """#include <brotli/decode.h>
        #include <brotli/encode.h>
     """,

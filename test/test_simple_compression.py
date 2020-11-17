@@ -5,7 +5,7 @@ test_simple_compression
 
 Tests for compression of single chunks.
 """
-import brotli
+import brotlicffi
 
 import pytest
 
@@ -20,8 +20,8 @@ def test_roundtrip_compression_with_files(simple_compressed_file):
     with open(simple_compressed_file[0], 'rb') as f:
         uncompressed_data = f.read()
 
-    assert brotli.decompress(
-        brotli.compress(uncompressed_data)
+    assert brotlicffi.decompress(
+        brotlicffi.compress(uncompressed_data)
     ) == uncompressed_data
 
 
@@ -29,7 +29,7 @@ def test_roundtrip_compression_with_files(simple_compressed_file):
 @settings(deadline=None)
 @given(
     chunk_size=integers(min_value=1, max_value=2**12),
-    mode=sampled_from(list(brotli.BrotliEncoderMode)),
+    mode=sampled_from(list(brotlicffi.BrotliEncoderMode)),
     quality=integers(min_value=0, max_value=11),
     lgwin=integers(min_value=10, max_value=24),
     lgblock=one_of(
@@ -47,7 +47,7 @@ def test_streaming_compression(one_compressed_file,
     Confirm that the streaming compressor works as expected.
     """
     compressed_chunks = []
-    c = brotli.Compressor(
+    c = brotlicffi.Compressor(
         mode=mode, quality=quality, lgwin=lgwin, lgblock=lgblock
     )
     with open(one_compressed_file, 'rb') as f:
@@ -59,7 +59,7 @@ def test_streaming_compression(one_compressed_file,
             compressed_chunks.append(c.compress(next_data))
 
     compressed_chunks.append(c.finish())
-    decompressed = brotli.decompress(b''.join(compressed_chunks))
+    decompressed = brotlicffi.decompress(b''.join(compressed_chunks))
     with open(one_compressed_file, 'rb') as f:
         assert decompressed == f.read()
 
@@ -68,7 +68,7 @@ def test_streaming_compression(one_compressed_file,
 @settings(deadline=None)
 @given(
     chunk_size=integers(min_value=1, max_value=2**12),
-    mode=sampled_from(list(brotli.BrotliEncoderMode)),
+    mode=sampled_from(list(brotlicffi.BrotliEncoderMode)),
     quality=integers(min_value=0, max_value=11),
     lgwin=integers(min_value=10, max_value=24),
     lgblock=one_of(
@@ -87,7 +87,7 @@ def test_streaming_compression_flush(one_compressed_file,
     after each chunk.
     """
     compressed_chunks = []
-    c = brotli.Compressor(
+    c = brotlicffi.Compressor(
         mode=mode, quality=quality, lgwin=lgwin, lgblock=lgblock
     )
     with open(one_compressed_file, 'rb') as f:
@@ -100,20 +100,20 @@ def test_streaming_compression_flush(one_compressed_file,
             compressed_chunks.append(c.flush())
 
     compressed_chunks.append(c.finish())
-    decompressed = brotli.decompress(b''.join(compressed_chunks))
+    decompressed = brotlicffi.decompress(b''.join(compressed_chunks))
     with open(one_compressed_file, 'rb') as f:
         assert decompressed == f.read()
 
 
 @given(binary())
 def test_compressed_data_roundtrips(s):
-    assert brotli.decompress(brotli.compress(s)) == s
+    assert brotlicffi.decompress(brotlicffi.compress(s)) == s
 
 
 @given(binary(), binary())
 def test_compressed_data_with_dictionaries(s, dictionary):
-    d = brotli.Decompressor(dictionary)
-    compressed = brotli.compress(s, dictionary=dictionary)
+    d = brotlicffi.Decompressor(dictionary)
+    compressed = brotlicffi.compress(s, dictionary=dictionary)
     uncompressed = d.decompress(compressed)
     assert uncompressed == s
 
@@ -127,7 +127,6 @@ def test_compressed_data_with_dictionaries(s, dictionary):
         {"lgblock": 52},
     ]
 )
-@pytest.mark.parametrize("exception_cls", [brotli.Error, brotli.error])
-def test_bad_compressor_parameters(params, exception_cls):
-    with pytest.raises(exception_cls):
-        brotli.Compressor(**params)
+def test_bad_compressor_parameters(params):
+    with pytest.raises(brotlicffi.error):
+        brotlicffi.Compressor(**params)

@@ -1,34 +1,34 @@
 API Documentation
 =================
 
-.. module:: brotli
+.. module:: brotlicffi
 
-This section of the documentation covers the API of brotlipy.
+This section of the documentation covers the API of BrotliCFFI.
 
 Decompression
 -------------
 
-.. automethod:: brotli.decompress
+.. automethod:: brotlicffi.decompress
 
-.. autoclass:: brotli.Decompressor
+.. autoclass:: brotlicffi.Decompressor
   :inherited-members:
 
 Compression
 -----------
 
-.. automethod:: brotli.compress
+.. automethod:: brotlicffi.compress
 
-.. autoclass:: brotli.Compressor
+.. autoclass:: brotlicffi.Compressor
    :members:
 
-.. autoclass:: brotli.BrotliEncoderMode
+.. autoclass:: brotlicffi.BrotliEncoderMode
    :members:
 
-.. autodata:: brotli.BROTLI_DEFAULT_MODE
+.. autodata:: brotlicffi.BROTLI_DEFAULT_MODE
 
 Errors
 ------
 
-.. autoclass:: brotli.Error
+.. autoclass:: brotlicffi.Error
 
-.. autodata:: brotli.error
+.. autodata:: brotlicffi.error

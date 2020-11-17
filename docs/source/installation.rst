@@ -1,11 +1,11 @@
 Installation
 ============
 
-Installing Brotlipy couldn't be easier:
+Installing BrotliCFFI couldn't be easier:
 
 .. code-block:: bash
 
-    $ pip install brotlipy
+    $ python -m pip install brotlicffi
 
 On OS X and Windows this should succeed without difficulty. On Linux, the above
 command has a few dependencies: mostly, you need a C compiler, the Python
