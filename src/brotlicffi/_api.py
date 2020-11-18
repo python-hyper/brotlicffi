@@ -8,15 +8,15 @@ from ._brotlicffi import ffi, lib
 class Error(Exception):
     """
     Raised whenever an error is encountered with compressing or decompressing
-    data using brotlipy.
+    data using brotlicffi.
 
     .. versionadded:: 0.5.1
     """
     pass
 
 
-#: An alias of :class:`Error <brotli.Error>` that exists for compatibility with
-#: the original C brotli module.
+#: An alias of :class:`Error <brotlicffi.Error>` that
+#: exists for compatibility with the original C brotli module.
 #:
 #: .. versionadded: 0.5.1
 error = Error
@@ -51,7 +51,7 @@ DEFAULT_MODE = BrotliEncoderMode(lib.BROTLI_DEFAULT_MODE)
 #: .. note:: This name is defined for compatibility with the Brotli C
 #:           extension. If you're not interested in that compatibility, it is
 #:           recommended that you use :class:`BrotliEncoderMode
-#:           <brotli.BrotliEncoderMode>` instead.
+#:           <brotlicffi.BrotliEncoderMode>` instead.
 #:
 #: .. versionadded:: 0.5.0
 MODE_GENERIC = BrotliEncoderMode.GENERIC
@@ -62,7 +62,7 @@ MODE_GENERIC = BrotliEncoderMode.GENERIC
 #: .. note:: This name is defined for compatibility with the Brotli C
 #:           extension. If you're not interested in that compatibility, it is
 #:           recommended that you use :class:`BrotliEncoderMode
-#:           <brotli.BrotliEncoderMode>` instead.
+#:           <brotlicffi.BrotliEncoderMode>` instead.
 #:
 #: .. versionadded:: 0.5.0
 MODE_TEXT = BrotliEncoderMode.TEXT
@@ -73,7 +73,7 @@ MODE_TEXT = BrotliEncoderMode.TEXT
 #: .. note:: This name is defined for compatibility with the Brotli C
 #:           extension. If you're not interested in that compatibility, it is
 #:           recommended that you use :class:`BrotliEncoderMode
-#:           <brotli.BrotliEncoderMode>` instead.
+#:           <brotlicffi.BrotliEncoderMode>` instead.
 #:
 #: .. versionadded:: 0.5.0
 MODE_FONT = BrotliEncoderMode.FONT
@@ -194,7 +194,7 @@ def _validate_lgblock(val):
 def _set_parameter(encoder, parameter, parameter_name, val):
     """
     This helper function sets a specific Brotli encoder parameter, checking
-    the return code and raising :class:`Error <brotli.Error>` if it is
+    the return code and raising :class:`Error <brotlicffi.Error>` if it is
     invalid.
     """
     rc = lib.BrotliEncoderSetParameter(encoder, parameter, val)
@@ -333,8 +333,7 @@ class Compressor(object):
         will not destroy the compressor. It can be used, for example, to ensure
         that given chunks of content will decompress immediately.
         """
-        chunks = []
-        chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
+        chunks = [self._compress(b'', lib.BROTLI_OPERATION_FLUSH)]
 
         while lib.BrotliEncoderHasMoreOutput(self._encoder) == lib.BROTLI_TRUE:
             chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
@@ -460,7 +459,14 @@ class Decompressor(object):
         assert (
             lib.BrotliDecoderHasMoreOutput(self._decoder) == lib.BROTLI_FALSE
         )
-        if lib.BrotliDecoderIsFinished(self._decoder) == lib.BROTLI_FALSE:
+        if not self.is_finished():
             raise Error("Decompression error: incomplete compressed stream.")
 
         return b''
+
+    def is_finished(self):
+        """
+        Returns ``True`` if the decompression stream
+        is complete, ``False`` otherwise
+        """
+        return lib.BrotliDecoderIsFinished(self._decoder) == lib.BROTLI_TRUE
