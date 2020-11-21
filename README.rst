@@ -17,6 +17,19 @@ More information can be found `in the documentation`_.
 .. _available here: https://github.com/google/brotli
 .. _in the documentation: https://brotlipy.readthedocs.org
 
+Using BrotliCFFI in Projects
+----------------------------
+
+The API is 100% compatible with the `Brotli Python C bindings`_.
+We recommend installing the C bindings on CPython and the CFFI
+bindings everywhere else (PyPy, etc)
+
+We provide an `example project`_ that shows how to use both
+libraries together to support Brotli with multiple Python implementations.
+
+.. _Brotli Python C bindings: https://pypi.org/project/Brotli
+.. _example project: https://github.com/python-hyper/brotlipy/tree/master/example
+
 License
 -------
 
