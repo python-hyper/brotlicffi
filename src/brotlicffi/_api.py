@@ -5,7 +5,7 @@ import enum
 from ._brotlicffi import ffi, lib
 
 
-class Error(Exception):
+class error(Exception):
     """
     Raised whenever an error is encountered with compressing or decompressing
     data using brotlicffi.
@@ -15,11 +15,11 @@ class Error(Exception):
     pass
 
 
-#: An alias of :class:`Error <brotlicffi.Error>` that
-#: exists for compatibility with the original C brotli module.
+#: An alias of :class:`error <brotli.error>` that
+#: exists for compatibility with the original CFFI brotli module.
 #:
-#: .. versionadded: 0.5.1
-error = Error
+#: .. versionadded: 0.8.0
+Error = error
 
 
 class BrotliEncoderMode(enum.IntEnum):
@@ -159,7 +159,7 @@ def _validate_mode(val):
     try:
         val = BrotliEncoderMode(val)
     except ValueError:
-        raise Error("%s is not a valid encoder mode" % val)
+        raise error("%s is not a valid encoder mode" % val)
 
 
 def _validate_quality(val):
@@ -167,7 +167,7 @@ def _validate_quality(val):
     Validate that the quality setting is valid.
     """
     if not (0 <= val <= 11):
-        raise Error(
+        raise error(
             "%d is not a valid quality, must be between 0 and 11" % val
         )
 
@@ -177,7 +177,7 @@ def _validate_lgwin(val):
     Validate that the lgwin setting is valid.
     """
     if not (10 <= val <= 24):
-        raise Error("%d is not a valid lgwin, must be between 10 and 24" % val)
+        raise error("%d is not a valid lgwin, must be between 10 and 24" % val)
 
 
 def _validate_lgblock(val):
@@ -185,7 +185,7 @@ def _validate_lgblock(val):
     Validate that the lgblock setting is valid.
     """
     if (val != 0) and not (16 <= val <= 24):
-        raise Error(
+        raise error(
             "%d is not a valid lgblock, must be either 0 or between 16 and 24"
             % val
         )
@@ -214,7 +214,7 @@ def _set_parameter(encoder, parameter, parameter_name, val):
     # function returns a value we can live in hope that the brotli folks will
     # enforce their own constraints.
     if rc != lib.BROTLI_TRUE:  # pragma: no cover
-        raise Error(
+        raise error(
             "Error setting parameter %s: %d" % (parameter_name, val)
         )
 
@@ -309,7 +309,7 @@ class Compressor(object):
             ffi.NULL
         )
         if rc != lib.BROTLI_TRUE:  # pragma: no cover
-            raise Error("Error encountered compressing data.")
+            raise error("Error encountered compressing data.")
 
         assert not input_size[0]
 
@@ -326,6 +326,8 @@ class Compressor(object):
             compressor to create the output yet.
         """
         return self._compress(data, lib.BROTLI_OPERATION_PROCESS)
+
+    process = compress
 
     def flush(self):
         """
@@ -414,7 +416,7 @@ class Decompressor(object):
             if rc == lib.BROTLI_DECODER_RESULT_ERROR:
                 error_code = lib.BrotliDecoderGetErrorCode(self._decoder)
                 error_message = lib.BrotliDecoderErrorString(error_code)
-                raise Error(
+                raise error(
                     "Decompression error: %s" % ffi.string(error_message)
                 )
 
@@ -432,6 +434,8 @@ class Decompressor(object):
                 assert rc == lib.BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT
 
         return b''.join(chunks)
+
+    process = decompress
 
     def flush(self):
         """
@@ -460,7 +464,7 @@ class Decompressor(object):
             lib.BrotliDecoderHasMoreOutput(self._decoder) == lib.BROTLI_FALSE
         )
         if not self.is_finished():
-            raise Error("Decompression error: incomplete compressed stream.")
+            raise error("Decompression error: incomplete compressed stream.")
 
         return b''
 

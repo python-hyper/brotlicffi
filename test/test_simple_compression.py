@@ -118,6 +118,21 @@ def test_compressed_data_with_dictionaries(s, dictionary):
     assert uncompressed == s
 
 
+@given(binary())
+def test_process_alias(s):
+    c1 = brotlicffi.Compressor()
+    c2 = brotlicffi.Compressor()
+    d1 = brotlicffi.Decompressor()
+    d2 = brotlicffi.Decompressor()
+    s1 = c1.compress(s) + c1.finish()
+    s2 = c2.process(s) + c2.finish()
+    assert (
+        (d1.decompress(s1) + d1.finish())
+        == (d2.process(s2) + d2.finish())
+        == s
+    )
+
+
 @pytest.mark.parametrize(
     "params",
     [
