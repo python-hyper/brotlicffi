@@ -88,7 +88,13 @@ jobs:
       - name: Install Visual C++ for Python 2.7
         if: runner.os == 'Windows'
         run: choco install vcpython27 -f -y
-      - name: Build wheels
+      - name: Build wheels for Windows
+        if: runner.os == 'Windows'
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: cp35-${{ matrix.name }}* pp*-${{ matrix.name }}*
+      - name: Build wheels for Linux and macOs
+        if: runner.os != 'Windows'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: cp27-${{ matrix.name }}* cp35-${{ matrix.name }}* pp*-${{ matrix.name }}*
@@ -105,19 +111,19 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: sdist
-          path: dists/
+          path: dist/
       - uses: actions/download-artifact@v1
         with:
           name: wheels-win
-          path: dists/
+          path: dist/
       - uses: actions/download-artifact@v1
         with:
           name: wheels-macos
-          path: dists/
+          path: dist/
       - uses: actions/download-artifact@v1
         with:
           name: wheels-manylinux
-          path: dists/
+          path: dist/
       - name: Publish to PyPI
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
         uses: pypa/gh-action-pypi-publish@master

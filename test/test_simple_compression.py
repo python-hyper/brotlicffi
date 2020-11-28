@@ -110,14 +110,6 @@ def test_compressed_data_roundtrips(s):
     assert brotlicffi.decompress(brotlicffi.compress(s)) == s
 
 
-@given(binary(), binary())
-def test_compressed_data_with_dictionaries(s, dictionary):
-    d = brotlicffi.Decompressor(dictionary)
-    compressed = brotlicffi.compress(s, dictionary=dictionary)
-    uncompressed = d.decompress(compressed)
-    assert uncompressed == s
-
-
 @given(binary())
 def test_process_alias(s):
     c1 = brotlicffi.Compressor()

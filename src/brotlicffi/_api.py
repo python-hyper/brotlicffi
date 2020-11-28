@@ -95,8 +95,7 @@ def compress(data,
              mode=DEFAULT_MODE,
              quality=lib.BROTLI_DEFAULT_QUALITY,
              lgwin=lib.BROTLI_DEFAULT_WINDOW,
-             lgblock=0,
-             dictionary=b''):
+             lgblock=0):
     """
     Compress a string using Brotli.
 
@@ -124,11 +123,6 @@ def compress(data,
         based on ``quality``.
     :type lgblock: ``int``
 
-    :param dictionary: A pre-set dictionary for LZ77. Please use this with
-        caution: if a dictionary is used for compression, the same dictionary
-        **must** be used for decompression!
-    :type dictionary: ``bytes``
-
     :returns: The compressed bytestring.
     :rtype: ``bytes``
     """
@@ -141,8 +135,7 @@ def compress(data,
         mode=mode,
         quality=quality,
         lgwin=lgwin,
-        lgblock=lgblock,
-        dictionary=dictionary
+        lgblock=lgblock
     )
     compressed_data = compressor._compress(data, lib.BROTLI_OPERATION_FINISH)
     assert lib.BrotliEncoderIsFinished(compressor._encoder) == lib.BROTLI_TRUE
@@ -255,8 +248,7 @@ class Compressor(object):
                  mode=DEFAULT_MODE,
                  quality=lib.BROTLI_DEFAULT_QUALITY,
                  lgwin=lib.BROTLI_DEFAULT_WINDOW,
-                 lgblock=0,
-                 dictionary=b''):
+                 lgblock=0):
         enc = lib.BrotliEncoderCreateInstance(
             ffi.NULL, ffi.NULL, ffi.NULL
         )
@@ -270,13 +262,6 @@ class Compressor(object):
         _set_parameter(enc, lib.BROTLI_PARAM_QUALITY, "quality", quality)
         _set_parameter(enc, lib.BROTLI_PARAM_LGWIN, "lgwin", lgwin)
         _set_parameter(enc, lib.BROTLI_PARAM_LGBLOCK, "lgblock", lgblock)
-
-        if dictionary:
-            self._dictionary = ffi.new("uint8_t []", dictionary)
-            self._dictionary_size = len(dictionary)
-            lib.BrotliEncoderSetCustomDictionary(
-                enc, self._dictionary_size, self._dictionary
-            )
 
         self._encoder = enc
 

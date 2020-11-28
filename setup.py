@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 import os
+import re
 import platform
 import sys
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+base_dir = os.path.dirname(os.path.abspath(__file__))
 long_description = (
     open("README.rst").read() + '\n\n' + open("HISTORY.rst").read()
 )
+
+with open(os.path.join(base_dir, "src", "brotlicffi", "__init__.py")) as f:
+    __version__ = re.search(r"__version__ = \"([^\"]+)\"", f.read()).group(1)
+
 
 class BuildClibBeforeExt(build_ext):
     """ Setuptools `develop` command (used by `pip install -e .`) only calls
@@ -21,44 +27,43 @@ class BuildClibBeforeExt(build_ext):
     https://github.com/pypa/pip/issues/4523
     """
 
+    def get_source_files(self):
+        filenames = build_ext.get_source_files(self)
+        filenames.extend(depends)
+        return filenames
+
     def run(self):
         self.run_command("build_clib")
         build_ext.run(self)
 
+
+depends = []
 libraries = []
 USE_SHARED_BROTLI = os.environ.get("USE_SHARED_BROTLI")
 if USE_SHARED_BROTLI != "1":
+    sources = []
+
+    for root, _, filenames in os.walk("libbrotli/c"):
+        root_parts = os.path.split(root)
+        if "fuzz" in root_parts or "tools" in root_parts:
+            continue
+        for filename in filenames:
+            relpath = os.path.relpath(os.path.join(root, filename), base_dir)
+            if filename.endswith(".h"):
+                depends.append(relpath)
+            elif filename.endswith(".c"):
+                sources.append(relpath)
+
     libraries = [
         ("libbrotli", {
             "include_dirs": [
-                "libbrotli/include",
-                "libbrotli/",
+                "libbrotli/c/include",
+                "libbrotli/c/common",
+                "libbrotli/c",
                 "src/brotlicffi"
             ],
-            "sources": [
-                'libbrotli/common/dictionary.c',
-                'libbrotli/dec/huffman.c',
-                'libbrotli/dec/bit_reader.c',
-                'libbrotli/dec/decode.c',
-                'libbrotli/dec/state.c',
-                'libbrotli/enc/backward_references.c',
-                'libbrotli/enc/backward_references_hq.c',
-                'libbrotli/enc/bit_cost.c',
-                'libbrotli/enc/block_splitter.c',
-                'libbrotli/enc/histogram.c',
-                'libbrotli/enc/memory.c',
-                'libbrotli/enc/literal_cost.c',
-                'libbrotli/enc/brotli_bit_stream.c',
-                'libbrotli/enc/compress_fragment_two_pass.c',
-                'libbrotli/enc/compress_fragment.c',
-                'libbrotli/enc/cluster.c',
-                'libbrotli/enc/utf8_util.c',
-                'libbrotli/enc/encode.c',
-                'libbrotli/enc/metablock.c',
-                'libbrotli/enc/static_dict.c',
-                'libbrotli/enc/dictionary_hash.c',
-                'libbrotli/enc/entropy_encode.c'
-            ]
+            "depends": depends,
+            "sources": sources,
         }),
     ]
 
@@ -77,7 +82,7 @@ if sys.version_info > (3,) and platform.python_implementation() == "CPython":
 
 setup(
     name="brotlicffi",
-    version="0.7.0",
+    version=__version__,
 
     description="Python CFFI bindings to the Brotli library",
     long_description=long_description,
