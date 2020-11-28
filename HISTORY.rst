@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.8.0 (2020-11-30)
+------------------
+
+- Renamed the package on PyPI to ``brotlicffi``, all further updates will be
+  published to the new package. Using the ``brotlipy`` is deprecated.
+- Changed the importable namespace from ``brotli`` to ``brotlicffi`` to no longer
+  conflict with the ``Brotli`` PyPI package.
+- Added ``process()`` method to ``Compressor`` and ``Decompressor``.
+- Added ``is_finished()`` method to ``Decompressor``.
+
 0.7.0 (2017-05-30)
 ------------------
 
