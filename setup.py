@@ -77,7 +77,7 @@ if sys.version_info > (3,) and platform.python_implementation() == "CPython":
 
 setup(
     name="brotlicffi",
-    version="0.7.0",
+    version="0.8.0",
 
     description="Python CFFI bindings to the Brotli library",
     long_description=long_description,
