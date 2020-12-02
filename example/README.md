@@ -15,16 +15,16 @@ from setuptools import setup
 setup(
     ...,
     install_requires=[
-        "brotli; implementation_name == 'cpython'",
-        "brotlicffi; implementation_name != 'cpython'"
+        "brotli; platform_python_implementation == 'CPython'",
+        "brotlicffi; platform_python_implementation != 'CPython'"
     ]
 )
 ```
 
 ```
 # requirements.txt:
-brotli; implementation_name == 'cpython'
-brotlicffi; implementation_name != 'cpython'
+brotli; platform_python_implementation == 'CPython'
+brotlicffi; platform_python_implementation != 'CPython'
 ```
 
 ...then you can import the bindings in your project like so:
