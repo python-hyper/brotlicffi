@@ -92,6 +92,7 @@ setup(
     ],
     install_requires=[
         "cffi>=1.0.0",
+        "enum34;python_version<'3.4'",
     ],
     cffi_modules=["src/brotlicffi/_build.py:ffi"],
     packages=find_packages('src'),
