@@ -22,16 +22,22 @@ def test_compatible_names():
 
 def test_brotli_version():
     """
-    Test that the __version__ starts with the Brotli version that's compiled with.
+    Test that the __version__ starts with the
+    Brotli version that's compiled with.
     """
     version_h = join(
         dirname(dirname(abspath(__file__))), "libbrotli/c/common/version.h"
     )
     with open(version_h) as f:
         brotli_version = int(
-            re.search(r"#define BROTLI_VERSION 0x([A-Fa-f0-9]+)", f.read()).group(1), 16
+            re.search(
+                r"#define BROTLI_VERSION 0x([A-Fa-f0-9]+)", f.read()
+            ).group(1),
+            16,
         )
         major = brotli_version >> 24
         minor = (brotli_version >> 12) & 0xFFF
         patch = brotli_version & 0xFFF
-        assert brotlicffi.__version__.startswith("%d.%d.%d." % (major, minor, patch))
+        assert brotlicffi.__version__.startswith(
+            "%d.%d.%d." % (major, minor, patch)
+        )
