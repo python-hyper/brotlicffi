@@ -21,7 +21,7 @@ ffi.set_source(
        #include <brotli/encode.h>
     """,
     libraries=libraries,
-    include_dirs=["libbrotli", "libbrotli/include"]
+    include_dirs=["libbrotli/c", "libbrotli/c/include", "libbrotli/c/common"]
 )
 
 ffi.cdef("""
@@ -92,20 +92,6 @@ ffi.cdef("""
                                                       size_t* available_out,
                                                       uint8_t** next_out,
                                                       size_t* total_out);
-
-    /* Fills the new state with a dictionary for LZ77, warming up the
-       ringbuffer, e.g. for custom static dictionaries for data formats.
-       Not to be confused with the built-in transformable dictionary of Brotli.
-       |size| should be less or equal to 2^24 (16MiB), otherwise the dictionary
-       will be ignored. The dictionary must exist in memory until decoding is
-       done and is owned by the caller. To use:
-        1) Allocate and initialize state with BrotliCreateInstance
-        2) Use BrotliSetCustomDictionary
-        3) Use BrotliDecompressStream
-        4) Clean up and free state with BrotliDestroyState
-    */
-    void BrotliDecoderSetCustomDictionary(
-        BrotliDecoderState* s, size_t size, const uint8_t* dict);
 
     /* Returns true, if decoder has some unconsumed output.
        Otherwise returns false. */
@@ -204,15 +190,6 @@ ffi.cdef("""
     BROTLI_BOOL BrotliEncoderSetParameter(BrotliEncoderState* state,
                                           BrotliEncoderParameter p,
                                           uint32_t value);
-
-    /* Fills the new state with a dictionary for LZ77, warming up the
-       ringbuffer, e.g. for custom static dictionaries for data formats.
-       Not to be confused with the built-in transformable dictionary of Brotli.
-       To decode, use BrotliSetCustomDictionary() of the decoder with the same
-       dictionary. */
-    void BrotliEncoderSetCustomDictionary(BrotliEncoderState* state,
-                                          size_t size,
-                                          const uint8_t* dict);
 
     /* Check if encoder is in "finished" state, i.e. no more input is
        acceptable and no more output will be produced.
