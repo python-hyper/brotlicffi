@@ -48,7 +48,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           python -m pip install tox
-          tox -e py35 py39
+          tox -e py35,py39
       - name: Run tests on Linux and macOS
         if: runner.os != 'Windows'
         run: |
