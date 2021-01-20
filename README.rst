@@ -1,9 +1,27 @@
 BrotliCFFI
 ==========
 
+.. image:: https://img.shields.io/pypi/v/brotlicffi
+    :alt: Version
+    :target: https://pypi.org/project/brotlicffi
+
+.. image:: https://pepy.tech/badge/brotlicffi
+    :alt: Downloads
+    :target: https://pepy.tech/project/brotlicffi
+
+.. image:: https://img.shields.io/github/workflow/status/python-hyper/brotlicffi/CI/master
+    :alt: CI Status
+    :target: https://github.com/python-hyper/brotlicffi/actions
+
 This library contains Python CFFI bindings for the reference Brotli encoder/decoder,
 `available here`_. This allows Python software to use the Brotli compression
 algorithm directly from Python code.
+
+Install from PyPI:
+
+.. code-block::
+
+    $ python -m pip install brotlicffi
 
 To use it simply, try this:
 
@@ -23,6 +41,24 @@ Using BrotliCFFI in Projects
 The API is 100% compatible with the `Brotli Python C bindings`_.
 We recommend installing the C bindings on CPython and the CFFI
 bindings everywhere else (PyPy, etc)
+
+Essentially you use requirements like this:
+
+ .. code-block:: python
+
+    install_requires=[
+        "brotli; platform_python_implementation == 'CPython'",
+        "brotlicffi; platform_python_implementation != 'CPython'"
+    ]
+
+and then import the correct Brotli library like so:
+
+ .. code-block:: python
+
+    try:
+        import brotlicffi as brotli
+    except ImportError:
+        import brotli
 
 We provide an `example project`_ that shows how to use both
 libraries together to support Brotli with multiple Python implementations.
