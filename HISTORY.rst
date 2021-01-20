@@ -1,6 +1,17 @@
 Changelog
 =========
 
+1.0.9.0 (2021-01-20)
+--------------------
+
+- Updated to v1.0.9 of the Brotli library
+- Library version now follows Brotli version
+- Removed the ``dictionary`` parameter from ``compress`` and ``Compressor``
+- **NOTE:** Python 2.7 wheels for Windows likely won't work until
+  `google/brotli#848`_ is resolved
+
+.. _google/brotli#848: https://github.com/google/brotli/issues/848
+
 0.8.0 (2020-11-30)
 ------------------
 
