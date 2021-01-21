@@ -25,6 +25,6 @@ def simple_compressed_file(request):
     return (file[:-len('.compressed')], file)
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def one_compressed_file():
     return os.path.join(TEST_DATA_DIR, 'alice29.txt')
