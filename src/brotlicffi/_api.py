@@ -402,7 +402,7 @@ class Decompressor(object):
                 error_code = lib.BrotliDecoderGetErrorCode(self._decoder)
                 error_message = lib.BrotliDecoderErrorString(error_code)
                 raise error(
-                    "Decompression error: %s" % ffi.string(error_message)
+                    b"Decompression error: %s" % ffi.string(error_message)
                 )
 
             # Next, copy the result out.
