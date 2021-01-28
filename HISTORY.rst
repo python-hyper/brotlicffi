@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0.9.1 (2021-01-27)
+--------------------
+
+- Avoid byte/string comparison warning in error message construction
+
+
 1.0.9.0 (2021-01-20)
 --------------------
 
