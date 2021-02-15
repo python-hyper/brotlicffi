@@ -105,19 +105,19 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: sdist
-          path: dists/
+          path: dist/
       - uses: actions/download-artifact@v1
         with:
           name: wheels-win
-          path: dists/
+          path: dist/
       - uses: actions/download-artifact@v1
         with:
           name: wheels-macos
-          path: dists/
+          path: dist/
       - uses: actions/download-artifact@v1
         with:
           name: wheels-manylinux
-          path: dists/
+          path: dist/
       - name: Publish to PyPI
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
         uses: pypa/gh-action-pypi-publish@master
