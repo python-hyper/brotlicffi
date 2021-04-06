@@ -95,16 +95,24 @@ jobs:
       # - name: Install Visual C++ for Python 2.7
       #   if: runner.os == 'Windows'
       #   run: choco install vcpython27 -f -y
+      - name: Install QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+
       - name: Build wheels for Windows  # see issue #174
         if: runner.os == 'Windows'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: cp35-${{ matrix.name }}* pp*-${{ matrix.name }}*
+
       - name: Build wheels for Linux and macOS
         if: runner.os != 'Windows'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: cp27-${{ matrix.name }}* cp35-${{ matrix.name }}* pp*-${{ matrix.name }}*
+          CIBW_ARCHS_LINUX: auto aarch64
       - uses: actions/upload-artifact@v2
         with:
           name: wheels-${{ matrix.name }}
