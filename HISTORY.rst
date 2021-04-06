@@ -4,7 +4,7 @@ Changelog
 1.0.9.2 (2021-04-06)
 --------------------
 
-- Start building manylinux_aarch64 wheels
+- Added ``manylinux_aarch64`` wheels
 
 
 1.0.9.1 (2021-01-27)
