@@ -5,6 +5,10 @@ BrotliCFFI
     :alt: Version
     :target: https://pypi.org/project/brotlicffi
 
+.. image:: https://anaconda.org/conda-forge/brotlicffi/badges/version.svg
+    :alt: Version-Conda
+    :target: https://anaconda.org/conda-forge/brotlicffi
+
 .. image:: https://pepy.tech/badge/brotlicffi
     :alt: Downloads
     :target: https://pepy.tech/project/brotlicffi
