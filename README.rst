@@ -5,7 +5,7 @@ BrotliCFFI
     :alt: Version
     :target: https://pypi.org/project/brotlicffi
 
-.. image:: https://anaconda.org/conda-forge/brotlicffi/badges/version.svg
+.. image:: https://img.shields.io/conda/vn/conda-forge/brotlicffi
     :alt: Version-Conda
     :target: https://anaconda.org/conda-forge/brotlicffi
 
@@ -26,6 +26,12 @@ Install from PyPI:
 .. code-block::
 
     $ python -m pip install brotlicffi
+
+Install from Conda:
+
+.. code-block::
+
+    $ conda install -c conda-forge brotlicffi
 
 To use it simply, try this:
 
