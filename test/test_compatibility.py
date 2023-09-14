@@ -29,15 +29,16 @@ def test_brotli_version():
         dirname(dirname(abspath(__file__))), "libbrotli/c/common/version.h"
     )
     with open(version_h) as f:
-        brotli_version = int(
-            re.search(
-                r"#define BROTLI_VERSION 0x([A-Fa-f0-9]+)", f.read()
-            ).group(1),
-            16,
+        brotli_versions = dict(
+            re.findall(
+                r"#define BROTLI_VERSION_(MAJOR|MINOR|PATCH) ([0-9]+)",
+                f.read()
+            )
         )
-        major = brotli_version >> 24
-        minor = (brotli_version >> 12) & 0xFFF
-        patch = brotli_version & 0xFFF
         assert brotlicffi.__version__.startswith(
-            "%d.%d.%d." % (major, minor, patch)
+            "%s.%s.%s." % (
+                brotli_versions["MAJOR"],
+                brotli_versions["MINOR"],
+                brotli_versions["PATCH"]
+            )
         )
