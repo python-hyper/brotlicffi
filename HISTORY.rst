@@ -1,6 +1,14 @@
 Changelog
 =========
 
+1.1.0.0 (2023-09-13)
+--------------------
+
+- Upgraded libbrotli to v1.1.0
+- Added explicit support for Python 3.10, 3.11, and 3.12
+- Removed support for Python 2.7, 3.5, and 3.6
+
+
 1.0.9.2 (2021-04-06)
 --------------------
 
