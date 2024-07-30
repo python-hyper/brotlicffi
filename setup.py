@@ -93,10 +93,12 @@ setup(
     author_email="cory@lukasa.co.uk",
 
     setup_requires=[
-        "cffi>=1.0.0",
+        "cffi>=1.0.0; python_version<'3.13'",
+        "cffi>=1.17.0rc1; python_version>='3.13'",
     ],
     install_requires=[
-        "cffi>=1.0.0",
+        "cffi>=1.0.0; python_version<'3.13'",
+        "cffi>=1.17.0rc1; python_version>='3.13'",
     ],
     python_requires=">=3.7",
     cffi_modules=["src/brotlicffi/_build.py:ffi"],
