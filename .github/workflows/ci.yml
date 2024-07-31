@@ -51,7 +51,7 @@ jobs:
         with:
           python-version: 3.x
       - name: Build source package
-        run: python setup.py sdist
+        run: pipx run build --sdist
       - name: Upload source package
         uses: actions/upload-artifact@v1
         with:
