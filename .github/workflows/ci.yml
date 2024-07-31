@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Set git to use LF on Windows
         if: runner.os == 'Windows'
@@ -91,13 +91,13 @@ jobs:
         if: runner.os == 'Windows'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: cp37-${{ matrix.name }}* pp*-${{ matrix.name }}*
+          CIBW_BUILD: cp38-${{ matrix.name }}* pp*-${{ matrix.name }}*
 
       - name: Build wheels for Linux and macOS
         if: runner.os != 'Windows'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: cp37-${{ matrix.name }}* pp*-${{ matrix.name }}*
+          CIBW_BUILD: cp38-${{ matrix.name }}* pp*-${{ matrix.name }}*
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BEFORE_BUILD_LINUX: yum install -y libffi-devel
       - uses: actions/upload-artifact@v2
