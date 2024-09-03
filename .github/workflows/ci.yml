@@ -110,19 +110,19 @@ jobs:
     needs: [lint, test, package-sdist, package-wheel]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: sdist
           path: dist/
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: wheels-win
           path: dist/
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: wheels-macos
           path: dist/
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: wheels-manylinux
           path: dist/
