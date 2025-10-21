@@ -125,7 +125,7 @@ jobs:
           path: dist/
       - uses: actions/download-artifact@v5
         with:
-          name: wheels-macos
+          name: wheels-macosx
           path: dist/
       - uses: actions/download-artifact@v5
         with:
