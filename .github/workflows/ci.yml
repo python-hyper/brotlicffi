@@ -55,7 +55,7 @@ jobs:
           pip install build
           python -m build --sdist
       - name: Upload source package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: sdist
           path: dist/
@@ -115,19 +115,19 @@ jobs:
     needs: [lint, test, package-sdist, package-wheel]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: sdist
           path: dist/
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: wheels-win
           path: dist/
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: wheels-macosx
           path: dist/
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: wheels-manylinux
           path: dist/
