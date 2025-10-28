@@ -88,6 +88,7 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: cp38-* pp*-*
+          CIBW_SKIP: "*musllinux*"
           CIBW_ENABLE: pypy
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BEFORE_BUILD_LINUX: yum install -y libffi-devel
