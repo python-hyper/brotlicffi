@@ -55,7 +55,7 @@ jobs:
           pip install build
           python -m build --sdist
       - name: Upload source package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: sdist
           path: dist/
@@ -64,13 +64,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        include:
-        - name: manylinux
-          os: ubuntu-latest
-        - name: macosx
-          os: macos-latest
-        - name: win
-          os: windows-latest
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v5
@@ -90,24 +84,17 @@ jobs:
         with:
           platforms: all
 
-      - name: Build wheels for Windows  # see issue #174
-        if: runner.os == 'Windows'
+      - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: cp38-${{ matrix.name }}* pp*-${{ matrix.name }}*
-          CIBW_ENABLE: pypy
-
-      - name: Build wheels for Linux and macOS
-        if: runner.os != 'Windows'
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_BUILD: cp38-${{ matrix.name }}* pp*-${{ matrix.name }}*
+          CIBW_BUILD: cp38-* pp*-*
+          CIBW_SKIP: "*musllinux*"
           CIBW_ENABLE: pypy
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BEFORE_BUILD_LINUX: yum install -y libffi-devel
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.name }}
+          name: wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
   publish:
@@ -115,21 +102,21 @@ jobs:
     needs: [lint, test, package-sdist, package-wheel]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: sdist
           path: dist/
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
-          name: wheels-win
+          name: wheels-windows-latest
           path: dist/
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
-          name: wheels-macosx
+          name: wheels-macos-latest
           path: dist/
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
-          name: wheels-manylinux
+          name: wheels-ubuntu-latest
           path: dist/
       - name: Publish to PyPI
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
