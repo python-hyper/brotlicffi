@@ -38,6 +38,44 @@ def test_decompressobj(simple_compressed_file):
     assert data == uncompressed_data
 
 
+# `more_data_limit` allows testing `decompress(b'')` with and without a limit.
+@pytest.mark.parametrize('more_data_limit', [100, None])
+def test_decompressobj_with_output_buffer_limit(
+    simple_compressed_file, more_data_limit
+):
+    """
+    Test decompression with `output_buffer_limit` set.
+    """
+    with open(simple_compressed_file[0], 'rb') as f:
+        uncompressed_data = f.read()
+
+    with open(simple_compressed_file[1], 'rb') as f:
+        compressed_data = f.read()
+
+    o = brotlicffi.Decompressor()
+    assert o.can_accept_more_data()
+    small_limit = 100
+    result = o.decompress(compressed_data, output_buffer_limit=small_limit)
+    assert len(result) <= small_limit
+
+    if not o.is_finished():
+        assert not o.can_accept_more_data()
+
+        # Continue decompressing with empty input.
+        all_output = [result]
+        while not o.can_accept_more_data() and not o.is_finished():
+            more_output = o.decompress(
+                b'', output_buffer_limit=more_data_limit
+            )
+            if more_data_limit is not None:
+                assert len(more_output) <= more_data_limit
+            all_output.append(more_output)
+        assert o.can_accept_more_data() or o.is_finished()
+
+        final_result = b''.join(all_output)
+        assert final_result == uncompressed_data
+
+
 def test_drip_feed(simple_compressed_file):
     """
     Sending in the data one byte at a time still works.
