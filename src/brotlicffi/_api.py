@@ -377,20 +377,16 @@ class Decompressor(object):
 
     @staticmethod
     def _calculate_buffer_size(
-        input_data_len, output_buffer_limit, total_output_size, chunks_num
+        input_data_len, output_buffer_limit, chunks_len, chunks_num
     ):
         if output_buffer_limit is not None:
-            remaining_space = output_buffer_limit - total_output_size
-            if remaining_space <= 0:
-                return None
-            return remaining_space
+            return output_buffer_limit - chunks_len
         # When `decompress(b'')` is called without `output_buffer_limit`.
         elif input_data_len == 0:
             # libbrotli would use 32 KB as a starting buffer size and double it
             # each time, capped at 16 MB.
             # https://github.com/google/brotli/blob/028fb5a23661f123017c060daa546b55cf4bde29/python/_brotli.c#L291-L292
-            log_size = chunks_num + 15
-            return 1 << min(log_size, 24)
+            return 1 << min(chunks_num + 15, 24)
         else:
             # Allocate a buffer that's hopefully overlarge, but if it's not we
             # don't mind: we'll spin around again.
@@ -419,6 +415,11 @@ class Decompressor(object):
                 "'can_accept_more_data()' is False"
             )
 
+        # We should avoid operations on the `self._unconsumed_data` if no data
+        # is to be processed.
+        if output_buffer_limit is not None and output_buffer_limit <= 0:
+            return b''
+
         # Use unconsumed data if available, use new data otherwise.
         if self._unconsumed_data:
             input_data = self._unconsumed_data
@@ -437,11 +438,9 @@ class Decompressor(object):
             buffer_size = self._calculate_buffer_size(
                 input_data_len=len(input_data),
                 output_buffer_limit=output_buffer_limit,
-                total_output_size=chunks_len,
+                chunks_len=chunks_len,
                 chunks_num=len(chunks),
             )
-            if buffer_size is None:
-                break
 
             available_out = ffi.new("size_t *", buffer_size)
             out_buffer = ffi.new("uint8_t[]", buffer_size)

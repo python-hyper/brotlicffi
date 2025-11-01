@@ -58,6 +58,19 @@ def test_decompressobj_with_output_buffer_limit(
     result = o.decompress(compressed_data, output_buffer_limit=small_limit)
     assert len(result) <= small_limit
 
+    # Ensure `output_buffer_limit` of zero works.
+    assert o.decompress(b'', output_buffer_limit=0) == b''
+
+    if o._unconsumed_data:
+        with pytest.raises(
+            brotlicffi.error,
+            match=(
+                r"brotli: decoder process called with data when "
+                r"'can_accept_more_data\(\)' is False"
+            ),
+        ):
+            o.decompress(b'additional data')
+
     if not o.is_finished():
         assert not o.can_accept_more_data()
 
