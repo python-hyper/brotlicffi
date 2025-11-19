@@ -3,6 +3,7 @@ import os
 import re
 import platform
 import sys
+import sysconfig
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
 
@@ -76,7 +77,8 @@ if sys.version_info > (3,) and platform.python_implementation() == "CPython":
     else:
         class BDistWheel(wheel.bdist_wheel.bdist_wheel):
             def finalize_options(self):
-                self.py_limited_api = "cp3{}".format(sys.version_info[1])
+                if sysconfig.get_config_var("Py_GIL_DISABLED") != 1:
+                    self.py_limited_api = "cp{}{}".format(*sys.version_info)
                 wheel.bdist_wheel.bdist_wheel.finalize_options(self)
         cmdclass['bdist_wheel'] = BDistWheel
 
