@@ -51,9 +51,7 @@ jobs:
         with:
           python-version: 3.x
       - name: Build source package
-        run: |
-          pip install build
-          python -m build --sdist
+        run: pipx run build --sdist
       - name: Upload source package
         uses: actions/upload-artifact@v5
         with:
@@ -84,12 +82,17 @@ jobs:
         with:
           platforms: all
 
-      - name: Build wheels
+      - name: Build wheels for Windows  # see issue #174
+        if: runner.os == 'Windows'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: cp38-* pp*-*
-          CIBW_SKIP: "*musllinux*"
-          CIBW_ENABLE: pypy
+          CIBW_BUILD: cp38-${{ matrix.name }}*
+
+      - name: Build wheels for Linux and macOS
+        if: runner.os != 'Windows'
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: cp38-${{ matrix.name }}*
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BEFORE_BUILD_LINUX: yum install -y libffi-devel
       - uses: actions/upload-artifact@v4
