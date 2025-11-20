@@ -1,6 +1,16 @@
 Changelog
 =========
 
+1.2.0.0 (TBD)
+--------------------
+
+- Upgraded libbrotli to v1.2.0.
+- Added ``output_buffer_limit`` parameter to ``Decompressor.decompress()`` and
+  ``Decompressor.process()`` methods to allow mitigation of unexpectedly large
+  output. This addresses potential security concerns where maliciously crafted
+  compressed data could result in excessive memory usage during decompression.
+
+
 1.1.0.0 (2023-09-14)
 --------------------
 

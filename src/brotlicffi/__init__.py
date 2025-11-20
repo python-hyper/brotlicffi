@@ -5,4 +5,4 @@ from ._api import (
     Compressor, MODE_GENERIC, MODE_TEXT, MODE_FONT, error, Error
 )
 
-__version__ = "1.1.0.0"
+__version__ = "1.2.0.0"
