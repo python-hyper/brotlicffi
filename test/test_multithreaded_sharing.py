@@ -53,7 +53,7 @@ def _thread_compress(original, compressor, barrier, results):
 
 def _thread_concurrent_process_compress(compressor, barrier, results):
     barrier.wait()
-    time.sleep(.001)
+    time.sleep(.01)
     try:
         _ = compressor.process(b"whatever")
     except brotlicffi.error:
@@ -62,7 +62,7 @@ def _thread_concurrent_process_compress(compressor, barrier, results):
 
 def _thread_concurrent_flush_compress(compressor, barrier, results):
     barrier.wait()
-    time.sleep(.001)
+    time.sleep(.01)
     try:
         _ = compressor.flush()
     except brotlicffi.error:
@@ -71,7 +71,7 @@ def _thread_concurrent_flush_compress(compressor, barrier, results):
 
 def _thread_concurrent_finish_compress(compressor, barrier, results):
     barrier.wait()
-    time.sleep(.001)
+    time.sleep(.01)
     try:
         _ = compressor.finish()
     except brotlicffi.error:
