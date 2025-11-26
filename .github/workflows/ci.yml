@@ -75,7 +75,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [
-            ["3.x", "cp38-* pp*-*"],
+            ["3.x", "cp38-*"],
+            ["3.x", "pp*-*"],
             ["3.14t", "cp314t-*"],
         ]
 
