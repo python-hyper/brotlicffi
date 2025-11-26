@@ -112,15 +112,15 @@ jobs:
           path: dist/
       - uses: actions/download-artifact@v6
         with:
-          name: wheels-windows-latest
+          pattern: wheels-windows-latest-*
           path: dist/
       - uses: actions/download-artifact@v6
         with:
-          name: wheels-macos-latest
+          pattern: wheels-macos-latest-*
           path: dist/
       - uses: actions/download-artifact@v6
         with:
-          name: wheels-ubuntu-latest
+          pattern: wheels-ubuntu-latest-*
           path: dist/
       - name: Publish to PyPI
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
