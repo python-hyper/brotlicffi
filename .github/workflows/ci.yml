@@ -75,9 +75,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [
-            ["3.x", "cp38-*"],
-            ["3.x", "pp*-*"],
-            ["3.14t", "cp314t-*"],
+            ["3.x", "cp38"],
+            ["3.x", "pp311"],
+            ["3.14t", "cp314t"],
         ]
 
     steps:
@@ -101,7 +101,7 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: ${{ matrix.python-version[1] }}
+          CIBW_BUILD: ${{ matrix.python-version[1] }}-*
           CIBW_SKIP: "*musllinux*"
           CIBW_ENABLE: pypy
           CIBW_ARCHS_LINUX: auto aarch64
