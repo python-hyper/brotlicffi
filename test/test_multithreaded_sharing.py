@@ -51,7 +51,7 @@ def _thread_compress(original, compressor, results):
 
 
 def _thread_concurrent_process_compress(compressor, results):
-    time.sleep(0.001)
+    time.sleep(0.01)
     try:
         _ = compressor.process(b"whatever")
     except brotlicffi.error:
@@ -59,7 +59,7 @@ def _thread_concurrent_process_compress(compressor, results):
 
 
 def _thread_concurrent_flush_compress(compressor, results):
-    time.sleep(0.002)
+    time.sleep(0.02)
     try:
         _ = compressor.flush()
     except brotlicffi.error:
@@ -67,7 +67,7 @@ def _thread_concurrent_flush_compress(compressor, results):
 
 
 def _thread_concurrent_finish_compress(compressor, results):
-    time.sleep(0.003)
+    time.sleep(0.03)
     try:
         _ = compressor.finish()
     except brotlicffi.error:
@@ -127,7 +127,7 @@ def _thread_decompress(compressed, decompressor, results):
 
 
 def _thread_concurrent_process(decompressor, results):
-    time.sleep(0.001)
+    time.sleep(0.01)
     try:
         _ = decompressor.process(b'')
     except brotlicffi.error:
@@ -135,7 +135,7 @@ def _thread_concurrent_process(decompressor, results):
 
 
 def _thread_concurrent_can_accept_more_data(decompressor, results):
-    time.sleep(0.002)
+    time.sleep(0.02)
     try:
         _ = decompressor.can_accept_more_data()
     except brotlicffi.error:
