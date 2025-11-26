@@ -503,8 +503,8 @@ class Decompressor(object):
 
             # Check if we've reached the output limit.
             if (
-                    output_buffer_limit is not None
-                    and chunks_len >= output_buffer_limit
+                output_buffer_limit is not None
+                and chunks_len >= output_buffer_limit
             ):
                 break
 
@@ -560,10 +560,11 @@ class Decompressor(object):
             raise error(
                 "Concurrently sharing Decompressor instances is not allowed")
         try:
-            return (
+            ret = (
                 lib.BrotliDecoderIsFinished(self._decoder) == lib.BROTLI_TRUE)
         finally:
             self.lock.release()
+        return ret
 
     def can_accept_more_data(self):
         """
