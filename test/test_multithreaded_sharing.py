@@ -7,7 +7,6 @@ Python bindings under an MIT license.
 import queue
 import random
 import threading
-import time
 
 import brotlicffi
 
@@ -44,14 +43,18 @@ def make_compress_input(size):
     return b"".join(out)
 
 
+compress_started = threading.Event()
+
+
 def _thread_compress(original, compressor, results):
+    compress_started.set()
     compressed = compressor.process(original)
     compressed += compressor.finish()
     results.put(1)
 
 
 def _thread_concurrent_process_compress(compressor, results):
-    time.sleep(0.01)
+    compress_started.wait()
     try:
         _ = compressor.process(b"whatever")
     except brotlicffi.error:
@@ -59,7 +62,7 @@ def _thread_concurrent_process_compress(compressor, results):
 
 
 def _thread_concurrent_flush_compress(compressor, results):
-    time.sleep(0.02)
+    compress_started.wait()
     try:
         _ = compressor.flush()
     except brotlicffi.error:
@@ -67,7 +70,7 @@ def _thread_concurrent_flush_compress(compressor, results):
 
 
 def _thread_concurrent_finish_compress(compressor, results):
-    time.sleep(0.03)
+    compress_started.wait()
     try:
         _ = compressor.finish()
     except brotlicffi.error:
@@ -120,14 +123,18 @@ def make_decompress_input(size):
         [prologue] + [filler] * (size // len(filler)) + [epilogue])
 
 
+decompress_started = threading.Event()
+
+
 def _thread_decompress(compressed, decompressor, results):
+    decompress_started.set()
     _ = decompressor.process(compressed)
     if decompressor.is_finished():
         results.put(1)
 
 
 def _thread_concurrent_process(decompressor, results):
-    time.sleep(0.01)
+    decompress_started.wait()
     try:
         _ = decompressor.process(b'')
     except brotlicffi.error:
@@ -135,7 +142,7 @@ def _thread_concurrent_process(decompressor, results):
 
 
 def _thread_concurrent_can_accept_more_data(decompressor, results):
-    time.sleep(0.02)
+    decompress_started.wait()
     try:
         _ = decompressor.can_accept_more_data()
     except brotlicffi.error:
@@ -143,7 +150,7 @@ def _thread_concurrent_can_accept_more_data(decompressor, results):
 
 
 def _thread_concurrent_is_finished(decompressor, results):
-    time.sleep(0.03)
+    decompress_started.wait()
     try:
         _ = decompressor.is_finished()
     except brotlicffi.error:
