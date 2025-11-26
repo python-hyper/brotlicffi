@@ -7,6 +7,7 @@ Python bindings under an MIT license.
 import queue
 import random
 import threading
+import time
 
 import brotlicffi
 
@@ -43,34 +44,34 @@ def make_compress_input(size):
     return b"".join(out)
 
 
-compress_started = threading.Event()
-
-
-def _thread_compress(original, compressor, results):
-    compress_started.set()
+def _thread_compress(original, compressor, barrier, results):
+    barrier.wait()
     compressed = compressor.process(original)
     compressed += compressor.finish()
     results.put(1)
 
 
-def _thread_concurrent_process_compress(compressor, results):
-    compress_started.wait()
+def _thread_concurrent_process_compress(compressor, barrier, results):
+    barrier.wait()
+    time.sleep(.001)
     try:
         _ = compressor.process(b"whatever")
     except brotlicffi.error:
         results.put(2)
 
 
-def _thread_concurrent_flush_compress(compressor, results):
-    compress_started.wait()
+def _thread_concurrent_flush_compress(compressor, barrier, results):
+    barrier.wait()
+    time.sleep(.001)
     try:
         _ = compressor.flush()
     except brotlicffi.error:
         results.put(3)
 
 
-def _thread_concurrent_finish_compress(compressor, results):
-    compress_started.wait()
+def _thread_concurrent_finish_compress(compressor, barrier, results):
+    barrier.wait()
+    time.sleep(.001)
     try:
         _ = compressor.finish()
     except brotlicffi.error:
@@ -81,28 +82,30 @@ def test_compress_concurrency():
     original = make_compress_input(2 * 1024 * 1024)
     compressor = brotlicffi.Compressor(quality=9)
     results = queue.Queue()
+    barrier = threading.Barrier(4)
     threads = []
     threads.append(
         threading.Thread(
-            target=_thread_compress, args=(original, compressor, results)
+            target=_thread_compress,
+            args=(original, compressor, barrier, results)
         )
     )
     threads.append(
         threading.Thread(
             target=_thread_concurrent_process_compress,
-            args=(compressor, results)
+            args=(compressor, barrier, results)
         )
     )
     threads.append(
         threading.Thread(
             target=_thread_concurrent_flush_compress,
-            args=(compressor, results)
+            args=(compressor, barrier, results)
         )
     )
     threads.append(
         threading.Thread(
             target=_thread_concurrent_finish_compress,
-            args=(compressor, results)
+            args=(compressor, barrier, results)
         )
     )
     for thread in threads:
@@ -123,34 +126,34 @@ def make_decompress_input(size):
         [prologue] + [filler] * (size // len(filler)) + [epilogue])
 
 
-decompress_started = threading.Event()
-
-
-def _thread_decompress(compressed, decompressor, results):
-    decompress_started.set()
+def _thread_decompress(compressed, decompressor, barrier, results):
+    barrier.wait()
     _ = decompressor.process(compressed)
     if decompressor.is_finished():
         results.put(1)
 
 
-def _thread_concurrent_process(decompressor, results):
-    decompress_started.wait()
+def _thread_concurrent_process(decompressor, barrier, results):
+    barrier.wait()
+    time.sleep(.001)
     try:
         _ = decompressor.process(b'')
     except brotlicffi.error:
         results.put(2)
 
 
-def _thread_concurrent_can_accept_more_data(decompressor, results):
-    decompress_started.wait()
+def _thread_concurrent_can_accept_more_data(decompressor, barrier, results):
+    barrier.wait()
+    time.sleep(.001)
     try:
         _ = decompressor.can_accept_more_data()
     except brotlicffi.error:
         results.put(3)
 
 
-def _thread_concurrent_is_finished(decompressor, results):
-    decompress_started.wait()
+def _thread_concurrent_is_finished(decompressor, barrier, results):
+    barrier.wait()
+    time.sleep(.001)
     try:
         _ = decompressor.is_finished()
     except brotlicffi.error:
@@ -161,26 +164,30 @@ def test_decompressor_concurrency():
     compressed = make_decompress_input(16 * 1024 * 1024)
     decompressor = brotlicffi.Decompressor()
     results = queue.Queue()
+    barrier = threading.Barrier(4)
     threads = []
     threads.append(
         threading.Thread(
-            target=_thread_decompress, args=(compressed, decompressor, results)
+            target=_thread_decompress,
+            args=(compressed, decompressor, barrier, results)
         )
     )
     threads.append(
         threading.Thread(
-            target=_thread_concurrent_process, args=(decompressor, results)
+            target=_thread_concurrent_process,
+            args=(decompressor, barrier, results)
         )
     )
     threads.append(
         threading.Thread(
             target=_thread_concurrent_can_accept_more_data,
-            args=(decompressor, results),
+            args=(decompressor, barrier, results),
         )
     )
     threads.append(
         threading.Thread(
-            target=_thread_concurrent_is_finished, args=(decompressor, results)
+            target=_thread_concurrent_is_finished,
+            args=(decompressor, barrier, results)
         )
     )
     for thread in threads:
