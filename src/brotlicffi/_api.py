@@ -450,6 +450,7 @@ class Decompressor(object):
         # is to be processed.
         if output_buffer_limit is not None and output_buffer_limit <= 0:
             return b''
+
         # Use unconsumed data if available, use new data otherwise.
         if self._unconsumed_data:
             input_data = self._unconsumed_data
