@@ -430,17 +430,6 @@ class Decompressor(object):
         :type output_buffer_limit: ``int`` or ``None``
         :returns: A bytestring containing the decompressed data.
         """
-        if self._unconsumed_data and data:
-            raise error(
-                "brotli: decoder process called with data when "
-                "'can_accept_more_data()' is False"
-            )
-
-        # We should avoid operations on the `self._unconsumed_data` if no data
-        # is to be processed.
-        if output_buffer_limit is not None and output_buffer_limit <= 0:
-            return b''
-
         if not self.lock.acquire(blocking=False):
             raise error(
                 "Concurrently sharing Decompressor instances is not allowed")
@@ -451,6 +440,16 @@ class Decompressor(object):
         return b''.join(chunks)
 
     def _decompress(self, data, output_buffer_limit):
+        if self._unconsumed_data and data:
+            raise error(
+                "brotli: decoder process called with data when "
+                "'can_accept_more_data()' is False"
+            )
+
+        # We should avoid operations on the `self._unconsumed_data` if no data
+        # is to be processed.
+        if output_buffer_limit is not None and output_buffer_limit <= 0:
+            return b''
         # Use unconsumed data if available, use new data otherwise.
         if self._unconsumed_data:
             input_data = self._unconsumed_data
