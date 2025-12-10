@@ -348,6 +348,10 @@ class Decompressor(object):
     .. versionchanged:: 0.5.0
        Added ``dictionary`` parameter.
 
+    .. versionchanged:: 1.2.0
+       Added ``can_accept_more_data()`` method and optional
+       ``output_buffer_limit`` parameter to ``process()``/``decompress()``.
+
     :param dictionary: A pre-set dictionary for LZ77. Please use this with
         caution: if a dictionary is used for compression, the same dictionary
         **must** be used for decompression!
@@ -355,10 +359,12 @@ class Decompressor(object):
     """
     _dictionary = None
     _dictionary_size = None
+    _unconsumed_data = None
 
     def __init__(self, dictionary=b''):
         dec = lib.BrotliDecoderCreateInstance(ffi.NULL, ffi.NULL, ffi.NULL)
         self._decoder = ffi.gc(dec, lib.BrotliDecoderDestroyInstance)
+        self._unconsumed_data = b''
 
         if dictionary:
             self._dictionary = ffi.new("uint8_t []", dictionary)
@@ -369,23 +375,73 @@ class Decompressor(object):
                 self._dictionary
             )
 
-    def decompress(self, data):
+    @staticmethod
+    def _calculate_buffer_size(
+        input_data_len, output_buffer_limit, chunks_len, chunks_num
+    ):
+        if output_buffer_limit is not None:
+            return output_buffer_limit - chunks_len
+        # When `decompress(b'')` is called without `output_buffer_limit`.
+        elif input_data_len == 0:
+            # libbrotli would use 32 KB as a starting buffer size and double it
+            # each time, capped at 16 MB.
+            # https://github.com/google/brotli/blob/028fb5a23661f123017c060daa546b55cf4bde29/python/_brotli.c#L291-L292
+            return 1 << min(chunks_num + 15, 24)
+        else:
+            # Allocate a buffer that's hopefully overlarge, but if it's not we
+            # don't mind: we'll spin around again.
+            return 5 * input_data_len
+
+    def decompress(self, data, output_buffer_limit=None):
         """
         Decompress part of a complete Brotli-compressed string.
 
+        .. versionchanged:: 1.2.0
+           Added ``output_buffer_limit`` parameter.
+
         :param data: A bytestring containing Brotli-compressed data.
+        :param output_buffer_limit: Optional maximum size for the output
+            buffer. If set, the output buffer will not grow once its size
+            equals or exceeds this value. If the limit is reached, further
+            calls to process (potentially with empty input) will continue to
+            yield more data. Following process() calls must only be called
+            with empty input until can_accept_more_data() returns True.
+        :type output_buffer_limit: ``int`` or ``None``
         :returns: A bytestring containing the decompressed data.
         """
-        chunks = []
+        if self._unconsumed_data and data:
+            raise error(
+                "brotli: decoder process called with data when "
+                "'can_accept_more_data()' is False"
+            )
 
-        available_in = ffi.new("size_t *", len(data))
-        in_buffer = ffi.new("uint8_t[]", data)
+        # We should avoid operations on the `self._unconsumed_data` if no data
+        # is to be processed.
+        if output_buffer_limit is not None and output_buffer_limit <= 0:
+            return b''
+
+        # Use unconsumed data if available, use new data otherwise.
+        if self._unconsumed_data:
+            input_data = self._unconsumed_data
+            self._unconsumed_data = b''
+        else:
+            input_data = data
+
+        chunks = []
+        chunks_len = 0
+
+        available_in = ffi.new("size_t *", len(input_data))
+        in_buffer = ffi.new("uint8_t[]", input_data)
         next_in = ffi.new("uint8_t **", in_buffer)
 
         while True:
-            # Allocate a buffer that's hopefully overlarge, but if it's not we
-            # don't mind: we'll spin around again.
-            buffer_size = 5 * len(data)
+            buffer_size = self._calculate_buffer_size(
+                input_data_len=len(input_data),
+                output_buffer_limit=output_buffer_limit,
+                chunks_len=chunks_len,
+                chunks_num=len(chunks),
+            )
+
             available_out = ffi.new("size_t *", buffer_size)
             out_buffer = ffi.new("uint8_t[]", buffer_size)
             next_out = ffi.new("uint8_t **", out_buffer)
@@ -408,6 +464,19 @@ class Decompressor(object):
             # Next, copy the result out.
             chunk = ffi.buffer(out_buffer, buffer_size - available_out[0])[:]
             chunks.append(chunk)
+            chunks_len += len(chunk)
+
+            # Save any unconsumed input for the next call.
+            if available_in[0] > 0:
+                remaining_input = ffi.buffer(next_in[0], available_in[0])[:]
+                self._unconsumed_data = remaining_input
+
+            # Check if we've reached the output limit.
+            if (
+                output_buffer_limit is not None
+                and chunks_len >= output_buffer_limit
+            ):
+                break
 
             if rc == lib.BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT:
                 assert available_in[0] == 0
@@ -459,3 +528,30 @@ class Decompressor(object):
         is complete, ``False`` otherwise
         """
         return lib.BrotliDecoderIsFinished(self._decoder) == lib.BROTLI_TRUE
+
+    def can_accept_more_data(self):
+        """
+        Checks if the decompressor can accept more compressed data.
+
+        If the ``output_buffer_limit`` parameter was used with
+        ``decompress()`` or ``process()``, this method should be checked to
+        determine if the decompressor is ready to accept new input. When the
+        output buffer limit is reached, the decompressor may still have
+        unconsumed input data or internal buffered output, and calling
+        ``decompress(b'')`` repeatedly will continue producing output until
+        this method returns ``True``.
+
+        .. versionadded:: 1.2.0
+
+        :returns: ``True`` if the decompressor is ready to accept more
+            compressed data via ``decompress()`` or ``process()``, ``False``
+            if the decompressor needs to output some data via
+            ``decompress(b'')``/``process(b'')`` before being provided any
+            more compressed data.
+        :rtype: ``bool``
+        """
+        if len(self._unconsumed_data) > 0:
+            return False
+        if lib.BrotliDecoderHasMoreOutput(self._decoder) == lib.BROTLI_TRUE:
+            return False
+        return True
