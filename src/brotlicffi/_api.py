@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
 import enum
+import threading
 
 from ._brotlicffi import ffi, lib
 
@@ -249,6 +250,7 @@ class Compressor(object):
                  quality=lib.BROTLI_DEFAULT_QUALITY,
                  lgwin=lib.BROTLI_DEFAULT_WINDOW,
                  lgblock=0):
+        self.lock = threading.RLock()
         enc = lib.BrotliEncoderCreateInstance(
             ffi.NULL, ffi.NULL, ffi.NULL
         )
@@ -271,28 +273,34 @@ class Compressor(object):
         because almost all of the code uses the exact same setup. It wouldn't
         have to, but it doesn't hurt at all.
         """
-        # The 'algorithm' for working out how big to make this buffer is from
-        # the Brotli source code, brotlimodule.cc.
-        original_output_size = int(
-            math.ceil(len(data) + (len(data) >> 2) + 10240)
-        )
-        available_out = ffi.new("size_t *")
-        available_out[0] = original_output_size
-        output_buffer = ffi.new("uint8_t []", available_out[0])
-        ptr_to_output_buffer = ffi.new("uint8_t **", output_buffer)
-        input_size = ffi.new("size_t *", len(data))
-        input_buffer = ffi.new("uint8_t []", data)
-        ptr_to_input_buffer = ffi.new("uint8_t **", input_buffer)
+        if not self.lock.acquire(blocking=False):
+            raise error(
+                "Concurrently sharing Compressor objects is not allowed")
+        try:
+            # The 'algorithm' for working out how big to make this buffer is
+            # from the Brotli source code, brotlimodule.cc.
+            original_output_size = int(
+                math.ceil(len(data) + (len(data) >> 2) + 10240)
+            )
+            available_out = ffi.new("size_t *")
+            available_out[0] = original_output_size
+            output_buffer = ffi.new("uint8_t []", available_out[0])
+            ptr_to_output_buffer = ffi.new("uint8_t **", output_buffer)
+            input_size = ffi.new("size_t *", len(data))
+            input_buffer = ffi.new("uint8_t []", data)
+            ptr_to_input_buffer = ffi.new("uint8_t **", input_buffer)
 
-        rc = lib.BrotliEncoderCompressStream(
-            self._encoder,
-            operation,
-            input_size,
-            ptr_to_input_buffer,
-            available_out,
-            ptr_to_output_buffer,
-            ffi.NULL
-        )
+            rc = lib.BrotliEncoderCompressStream(
+                self._encoder,
+                operation,
+                input_size,
+                ptr_to_input_buffer,
+                available_out,
+                ptr_to_output_buffer,
+                ffi.NULL
+            )
+        finally:
+            self.lock.release()
         if rc != lib.BROTLI_TRUE:  # pragma: no cover
             raise error("Error encountered compressing data.")
 
@@ -320,11 +328,17 @@ class Compressor(object):
         will not destroy the compressor. It can be used, for example, to ensure
         that given chunks of content will decompress immediately.
         """
-        chunks = [self._compress(b'', lib.BROTLI_OPERATION_FLUSH)]
+        if not self.lock.acquire(blocking=False):
+            raise error(
+                "Concurrently sharing Compressor objects is not allowed")
+        try:
+            chunks = [self._compress(b'', lib.BROTLI_OPERATION_FLUSH)]
 
-        while lib.BrotliEncoderHasMoreOutput(self._encoder) == lib.BROTLI_TRUE:
-            chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
-
+            while ((lib.BrotliEncoderHasMoreOutput(self._encoder) ==
+                    lib.BROTLI_TRUE)):
+                chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
+        finally:
+            self.lock.release()
         return b''.join(chunks)
 
     def finish(self):
@@ -333,10 +347,16 @@ class Compressor(object):
         transition the compressor to a completed state. The compressor cannot
         be used again after this point, and must be replaced.
         """
-        chunks = []
-        while lib.BrotliEncoderIsFinished(self._encoder) == lib.BROTLI_FALSE:
-            chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FINISH))
-
+        if not self.lock.acquire(blocking=False):
+            raise error(
+                "Concurrently sharing Compressor objects is not allowed")
+        try:
+            chunks = []
+            while ((lib.BrotliEncoderIsFinished(self._encoder) ==
+                    lib.BROTLI_FALSE)):
+                chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FINISH))
+        finally:
+            self.lock.release()
         return b''.join(chunks)
 
 
@@ -362,6 +382,7 @@ class Decompressor(object):
     _unconsumed_data = None
 
     def __init__(self, dictionary=b''):
+        self.lock = threading.Lock()
         dec = lib.BrotliDecoderCreateInstance(ffi.NULL, ffi.NULL, ffi.NULL)
         self._decoder = ffi.gc(dec, lib.BrotliDecoderDestroyInstance)
         self._unconsumed_data = b''
@@ -409,6 +430,16 @@ class Decompressor(object):
         :type output_buffer_limit: ``int`` or ``None``
         :returns: A bytestring containing the decompressed data.
         """
+        if not self.lock.acquire(blocking=False):
+            raise error(
+                "Concurrently sharing Decompressor instances is not allowed")
+        try:
+            chunks = self._decompress(data, output_buffer_limit)
+        finally:
+            self.lock.release()
+        return b''.join(chunks)
+
+    def _decompress(self, data, output_buffer_limit):
         if self._unconsumed_data and data:
             raise error(
                 "brotli: decoder process called with data when "
@@ -486,8 +517,7 @@ class Decompressor(object):
             else:
                 # It's cool if we need more output, we just loop again.
                 assert rc == lib.BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT
-
-        return b''.join(chunks)
+        return chunks
 
     process = decompress
 
@@ -527,7 +557,15 @@ class Decompressor(object):
         Returns ``True`` if the decompression stream
         is complete, ``False`` otherwise
         """
-        return lib.BrotliDecoderIsFinished(self._decoder) == lib.BROTLI_TRUE
+        if not self.lock.acquire(blocking=False):
+            raise error(
+                "Concurrently sharing Decompressor instances is not allowed")
+        try:
+            ret = (
+                lib.BrotliDecoderIsFinished(self._decoder) == lib.BROTLI_TRUE)
+        finally:
+            self.lock.release()
+        return ret
 
     def can_accept_more_data(self):
         """
@@ -550,8 +588,16 @@ class Decompressor(object):
             more compressed data.
         :rtype: ``bool``
         """
-        if len(self._unconsumed_data) > 0:
-            return False
-        if lib.BrotliDecoderHasMoreOutput(self._decoder) == lib.BROTLI_TRUE:
-            return False
-        return True
+        if not self.lock.acquire(blocking=False):
+            raise error(
+                "Concurrently sharing Decompressor instances is not allowed")
+        try:
+            ret = True
+            if len(self._unconsumed_data) > 0:
+                ret = False
+            if ((lib.BrotliDecoderHasMoreOutput(self._decoder) ==
+                 lib.BROTLI_TRUE)):
+                ret = False
+        finally:
+            self.lock.release()
+        return ret

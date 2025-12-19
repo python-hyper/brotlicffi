@@ -3,6 +3,7 @@ import os
 import re
 import platform
 import sys
+import sysconfig
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
 
@@ -74,11 +75,13 @@ if sys.version_info > (3,) and platform.python_implementation() == "CPython":
     except ImportError:
         pass
     else:
-        class BDistWheel(wheel.bdist_wheel.bdist_wheel):
-            def finalize_options(self):
-                self.py_limited_api = "cp3{}".format(sys.version_info[1])
-                wheel.bdist_wheel.bdist_wheel.finalize_options(self)
-        cmdclass['bdist_wheel'] = BDistWheel
+        # the limited API is only supported on GIL builds as of Python 3.14
+        if not bool(sysconfig.get_config_var("Py_GIL_DISABLED")):
+            class BDistWheel(wheel.bdist_wheel.bdist_wheel):
+                def finalize_options(self):
+                    self.py_limited_api = "cp3{}".format(sys.version_info[1])
+                    wheel.bdist_wheel.bdist_wheel.finalize_options(self)
+            cmdclass['bdist_wheel'] = BDistWheel
 
 setup(
     name="brotlicffi",
@@ -122,5 +125,6 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: Free Threading :: 2 - Beta",
     ]
 )
