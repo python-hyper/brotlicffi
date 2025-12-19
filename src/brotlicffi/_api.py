@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import math
 import enum
 import threading
@@ -153,7 +152,7 @@ def _validate_mode(val):
     try:
         val = BrotliEncoderMode(val)
     except ValueError:
-        raise error("%s is not a valid encoder mode" % val)
+        raise error(f"{val} is not a valid encoder mode")
 
 
 def _validate_quality(val):
@@ -161,9 +160,7 @@ def _validate_quality(val):
     Validate that the quality setting is valid.
     """
     if not (0 <= val <= 11):
-        raise error(
-            "%d is not a valid quality, must be between 0 and 11" % val
-        )
+        raise error(f"{val} is not a valid quality, must be between 0 and 11")
 
 
 def _validate_lgwin(val):
@@ -171,7 +168,7 @@ def _validate_lgwin(val):
     Validate that the lgwin setting is valid.
     """
     if not (10 <= val <= 24):
-        raise error("%d is not a valid lgwin, must be between 10 and 24" % val)
+        raise error(f"{val} is not a valid lgwin, must be between 10 and 24")
 
 
 def _validate_lgblock(val):
@@ -180,8 +177,8 @@ def _validate_lgblock(val):
     """
     if (val != 0) and not (16 <= val <= 24):
         raise error(
-            "%d is not a valid lgblock, must be either 0 or between 16 and 24"
-            % val
+            f"{val} is not a valid lgblock, must be either 0 or between 16 "
+            "and 24"
         )
 
 
@@ -208,12 +205,10 @@ def _set_parameter(encoder, parameter, parameter_name, val):
     # function returns a value we can live in hope that the brotli folks will
     # enforce their own constraints.
     if rc != lib.BROTLI_TRUE:  # pragma: no cover
-        raise error(
-            "Error setting parameter %s: %d" % (parameter_name, val)
-        )
+        raise error(f"Error setting parameter {parameter_name}: {val}")
 
 
-class Compressor(object):
+class Compressor:
     """
     An object that allows for streaming compression of data using the Brotli
     compression algorithm.
@@ -334,8 +329,8 @@ class Compressor(object):
         try:
             chunks = [self._compress(b'', lib.BROTLI_OPERATION_FLUSH)]
 
-            while ((lib.BrotliEncoderHasMoreOutput(self._encoder) ==
-                    lib.BROTLI_TRUE)):
+            while (lib.BrotliEncoderHasMoreOutput(self._encoder) ==
+                    lib.BROTLI_TRUE):
                 chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FLUSH))
         finally:
             self.lock.release()
@@ -352,15 +347,15 @@ class Compressor(object):
                 "Concurrently sharing Compressor objects is not allowed")
         try:
             chunks = []
-            while ((lib.BrotliEncoderIsFinished(self._encoder) ==
-                    lib.BROTLI_FALSE)):
+            while (lib.BrotliEncoderIsFinished(self._encoder) ==
+                    lib.BROTLI_FALSE):
                 chunks.append(self._compress(b'', lib.BROTLI_OPERATION_FINISH))
         finally:
             self.lock.release()
         return b''.join(chunks)
 
 
-class Decompressor(object):
+class Decompressor:
     """
     An object that allows for streaming decompression of Brotli-compressed
     data.
@@ -595,8 +590,8 @@ class Decompressor(object):
             ret = True
             if len(self._unconsumed_data) > 0:
                 ret = False
-            if ((lib.BrotliDecoderHasMoreOutput(self._decoder) ==
-                 lib.BROTLI_TRUE)):
+            if (lib.BrotliDecoderHasMoreOutput(self._decoder) ==
+                    lib.BROTLI_TRUE):
                 ret = False
         finally:
             self.lock.release()
