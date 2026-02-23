@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.2.1.0 (2025-02-23)
+--------------------
+
+- Added support for the free-threaded build of Python 3.14.
+- Concurrent sharing of Compressor or Decompressor objects
+  now raises an exception.
+
 1.2.0.0 (2025-11-21)
 --------------------
 
