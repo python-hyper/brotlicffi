@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.2.1.0 (2025-02-23)
+1.2.0.1 (2025-03-05)
 --------------------
 
 - Added support for the free-threaded build of Python 3.14.
