@@ -19,6 +19,7 @@ ffi.set_source(
     "_brotlicffi",
     """#include <brotli/decode.h>
        #include <brotli/encode.h>
+       #include <brotli/shared_dictionary.h>
     """,
     libraries=libraries,
     include_dirs=["libbrotli/c", "libbrotli/c/include", "libbrotli/c/common"]
@@ -111,6 +112,16 @@ ffi.cdef("""
                                                   const BrotliDecoderState* s);
 
     const char* BrotliDecoderErrorString(BrotliDecoderErrorCode c);
+
+    typedef enum BrotliSharedDictionaryType {
+      BROTLI_SHARED_DICTIONARY_RAW = 0,
+      BROTLI_SHARED_DICTIONARY_SERIALIZED = 1
+    } BrotliSharedDictionaryType;
+
+    BROTLI_BOOL BrotliDecoderAttachDictionary(BrotliDecoderState* state,
+                                              BrotliSharedDictionaryType type,
+                                              size_t data_size,
+                                              const uint8_t* data);
 
     /* enc/encode.h */
     typedef ... BrotliEncoderState;
