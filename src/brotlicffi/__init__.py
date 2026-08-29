@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa
-from ._api import (
+from ._api import (  # noqa: F401
     decompress, Decompressor, compress, BrotliEncoderMode, DEFAULT_MODE,
     Compressor, MODE_GENERIC, MODE_TEXT, MODE_FONT, error, Error
 )
