@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_compatibility
 ~~~~~~~~~~~~~~~~~~
@@ -36,7 +35,7 @@ def test_brotli_version():
             )
         )
         assert brotlicffi.__version__.startswith(
-            "%s.%s.%s." % (
+            "{}.{}.{}.".format(
                 brotli_versions["MAJOR"],
                 brotli_versions["MINOR"],
                 brotli_versions["PATCH"]
