@@ -12,3 +12,7 @@ recursive-include libbrotli/c/include *.c *.h *.cc
 
 # Include test files
 recursive-include test/ *.py
+
+# Include test fixtures and test runner configuration
+recursive-include libbrotli/tests/testdata *
+include tox.ini
