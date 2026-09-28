@@ -492,6 +492,11 @@ class Decompressor(object):
                     b"Decompression error: %s" % ffi.string(error_message)
                 )
 
+            # Reject bytes remaining after the Brotli stream finishes.
+            if rc == lib.BROTLI_DECODER_RESULT_SUCCESS and available_in[0]:
+                self._unconsumed_data = b''
+                raise error("Decompression error: trailing data after stream.")
+
             # Next, copy the result out.
             chunk = ffi.buffer(out_buffer, buffer_size - available_out[0])[:]
             chunks.append(chunk)

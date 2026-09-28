@@ -108,6 +108,45 @@ def test_high_expansion_prefix_without_output_buffer_limit():
     assert result == uncompressed
 
 
+def test_decompression_rejects_trailing_data():
+    data = brotlicffi.compress(b'A' * 100) + b'x'
+    with pytest.raises(brotlicffi.error, match='trailing data'):
+        brotlicffi.decompress(data)
+
+
+@pytest.mark.parametrize('method', ['decompress', 'process'])
+@pytest.mark.parametrize('output_buffer_limit', [None, 50])
+def test_decompressobj_rejects_trailing_data(method, output_buffer_limit):
+    o = brotlicffi.Decompressor()
+    decompress = getattr(o, method)
+    # Without a limit, decoding needs multiple internal buffer iterations.
+    data = brotlicffi.compress(b'A' * 100) + b'tail'
+    if output_buffer_limit is not None:
+        assert decompress(data, output_buffer_limit=50) == b'A' * 50
+        assert not o.can_accept_more_data()
+        data = b''
+
+    with pytest.raises(brotlicffi.error, match='trailing data'):
+        decompress(data, output_buffer_limit=output_buffer_limit)
+
+    assert o._unconsumed_data == b''
+    with pytest.raises(brotlicffi.error, match='trailing data'):
+        decompress(b'x', output_buffer_limit=output_buffer_limit)
+
+
+@pytest.mark.parametrize('output_buffer_limit', [None, 100])
+def test_decompressobj_rejects_data_after_finished(output_buffer_limit):
+    o = brotlicffi.Decompressor()
+    data = brotlicffi.compress(b'A' * 100)
+    assert (
+        o.process(data, output_buffer_limit=output_buffer_limit) == b'A' * 100
+    )
+    assert o.is_finished()
+
+    with pytest.raises(brotlicffi.error, match='trailing data'):
+        o.process(b'x', output_buffer_limit=output_buffer_limit)
+
+
 def test_drip_feed(simple_compressed_file):
     """
     Sending in the data one byte at a time still works.
