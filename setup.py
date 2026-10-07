@@ -79,7 +79,7 @@ if sys.version_info > (3,) and platform.python_implementation() == "CPython":
         if not bool(sysconfig.get_config_var("Py_GIL_DISABLED")):
             class BDistWheel(wheel.bdist_wheel.bdist_wheel):
                 def finalize_options(self):
-                    self.py_limited_api = "cp3{}".format(sys.version_info[1])
+                    self.py_limited_api = f"cp3{sys.version_info[1]}"
                     wheel.bdist_wheel.bdist_wheel.finalize_options(self)
             cmdclass['bdist_wheel'] = BDistWheel
 
