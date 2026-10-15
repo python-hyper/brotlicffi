@@ -390,11 +390,14 @@ class Decompressor(object):
         if dictionary:
             self._dictionary = ffi.new("uint8_t []", dictionary)
             self._dictionary_size = len(dictionary)
-            lib.BrotliDecoderSetCustomDictionary(
+            attached = lib.BrotliDecoderAttachDictionary(
                 self._decoder,
+                lib.BROTLI_SHARED_DICTIONARY_RAW,
                 self._dictionary_size,
                 self._dictionary
             )
+            if attached != lib.BROTLI_TRUE:
+                raise error("Error attaching custom dictionary.")
 
     @staticmethod
     def _calculate_buffer_size(
