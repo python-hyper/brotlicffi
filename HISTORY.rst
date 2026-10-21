@@ -4,7 +4,8 @@ Changelog
 1.2.1.0 (2026-10-21)
 --------------------
 
-- Upgraded libbrotli to v1.2.1.
+- Upgraded libbrotli to v1.2.1, which remediates CVE-2026-111497, an
+  out-of-bounds write that permits remote code execution.
 - Changed one-shot ``decompress()`` and streaming ``Decompressor.process()`` /
   ``Decompressor.decompress()`` to raise ``brotlicffi.error`` for trailing bytes
   after a complete Brotli stream, including calls without an output limit.
