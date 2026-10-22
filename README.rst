@@ -79,9 +79,8 @@ libraries together to support Brotli with multiple Python implementations.
 License
 -------
 
-The source code of BrotliCFFI is available under the MIT license. Brotli itself
-is made available under the Version 2.0 of the Apache Software License. See the
-LICENSE and libbrotli/LICENSE files for more information.
+The source code of BrotliCFFI and Brotli itself are available under the MIT
+license. See the LICENSE and libbrotli/LICENSE files for more information.
 
 Authors
 -------

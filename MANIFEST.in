@@ -10,5 +10,12 @@ recursive-include libbrotli/c/dec *.c *.h *.cc
 recursive-include libbrotli/c/common *.c *.h *.cc
 recursive-include libbrotli/c/include *.c *.h *.cc
 
-# Include test files
+# Include test files, dependencies, and fixtures
+include tox.ini test_requirements.txt
 recursive-include test/ *.py
+
+recursive-include libbrotli/tests/testdata *
+# Exclude datasets and alternate encodings unused by brotlicffi's tests,
+# saving about 12 MB of uncompressed test data.
+exclude libbrotli/tests/testdata/bb.binast libbrotli/tests/testdata/random_chunks
+exclude libbrotli/tests/testdata/*.compressed.*
